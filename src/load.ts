@@ -30,6 +30,8 @@ export class LoadScene extends Phaser.Scene {
         this.load.image('hill', 'img/hill.png');
         this.load.image('windmill-color-hill', 'img/windmill-color-hill.png');
         this.load.image('center', 'img/center.png');
+
+        this.load.bitmapFont('font', 'font/font.png', 'font/font.fnt');
     }
 
     create() {
