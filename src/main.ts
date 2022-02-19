@@ -190,13 +190,16 @@ class Hex extends Phaser.GameObjects.Image {
     wEdge: Phaser.GameObjects.Image;
     swEdge: Phaser.GameObjects.Image;
     seEdge: Phaser.GameObjects.Image;
+    propeller: Phaser.GameObjects.Image;
 
     constructor(scene: Phaser.Scene, row: number, col: number) {
         let x = getX(row, col);
         let y = getY(row, col);
-        super(scene, x, y, 'white');
+        super(scene, x, y, 'empty');
+        
+        this.setScale(0.5);
         scene.add.existing(this);
-        this.setTint(0xd6d1b1)
+        // this.setTint(0xd6d1b1)
         this.row = row;
         this.col = col;
         this.hexType = 0;
@@ -215,13 +218,38 @@ class Hex extends Phaser.GameObjects.Image {
         this.wEdge.setAlpha(0);
         this.swEdge.setAlpha(0);
         this.seEdge.setAlpha(0);
+        this.eEdge.setDepth(1);
+        this.neEdge.setDepth(1);
+        this.nwEdge.setDepth(1);
+        this.wEdge.setDepth(1);
+        this.swEdge.setDepth(1);
+        this.seEdge.setDepth(1);
+
+        this.eEdge.setScale(0.5);
+        this.neEdge.setScale(0.5);
+        this.nwEdge.setScale(0.5);
+        this.wEdge.setScale(0.5);
+        this.swEdge.setScale(0.5);
+        this.seEdge.setScale(0.5);
+
+        this.propeller = scene.add.image(x, y, 'propeller');
+        this.propeller.setScale(0.5);
+        this.propeller.setVisible(false);
+        this.propeller.setDepth(2);
     }
 
     setType(hexType: number) {
-        this.setTexture(['white', 'windmill-color', 'park-color', 'street-color', 'center', 'port'][hexType]);
+        this
+        this.setTexture(['empty', 'windmill', 'grass', 'street', 'center', 'port'][hexType]);
         this.hexType = hexType;
-        if (this.hasHill && hexType === 1) {
-            this.setTexture('windmill-color-hill');
+        if (hexType === 1) {
+            this.propeller.setVisible(true);
+            if (this.hasHill) {
+                this.propeller.setY(this.y - 35);
+                this.setTexture('windmill-hill');
+            } else {
+                this.propeller.setY(this.y - 15);
+            }
         }
 
         if (hexType === 5) {
@@ -236,7 +264,14 @@ class Hex extends Phaser.GameObjects.Image {
 
     setHill(hasHill: boolean) {
         this.hasHill = hasHill;
-        if (hasHill) this.setTexture('hill');
+        if (hasHill) this.setTexture('empty-hill');
+    }
+
+    update(time: number, delta: number) {
+        if (this.propeller.visible) {
+            let speed = (this.hasHill && this.counted) ? 2 : this.counted ? 1 : 0;
+            this.propeller.setAngle(this.propeller.angle + speed*0.1*delta)
+        }
     }
 }
 
@@ -252,6 +287,48 @@ class Trihex {
     }
 
     rotateRight() {
+        if (this.shape === 'a') {
+            this.shape = 'v';
+            let temp = this.hexes[0];
+            this.hexes[0] = this.hexes[1];
+            this.hexes[1] = temp;
+        } else if (this.shape === 'v') {
+            this.shape = 'a';
+            let temp = this.hexes[1];
+            this.hexes[1] = this.hexes[2];
+            this.hexes[2] = temp;
+        } else if (this.shape === '\\') {
+            this.shape = '/';
+        } else if (this.shape === '/') {
+            this.shape = '-';
+            let temp = this.hexes[0];
+            this.hexes[0] = this.hexes[2];
+            this.hexes[2] = temp;
+        } else if (this.shape === '-') {
+            this.shape = '\\';
+        } else if (this.shape === 'c') {
+            this.shape = 'r';
+        } else if (this.shape === 'r') {
+            this.shape = 'n';
+            let temp = this.hexes[0];
+            this.hexes[0] = this.hexes[2];
+            this.hexes[2] = temp;
+
+        } else if (this.shape === 'n') {
+            this.shape = 'd';
+        } else if (this.shape === 'd') {
+            this.shape = 'j';
+        } else if (this.shape === 'j') {
+            this.shape = 'l';
+            let temp = this.hexes[0];
+            this.hexes[0] = this.hexes[2];
+            this.hexes[2] = temp;
+        } else if (this.shape === 'l') {
+            this.shape = 'c';
+        }
+    }
+
+    rotateLeft() {
         if (this.shape === 'a') {
             this.shape = 'v';
             let temp = this.hexes[0];
@@ -313,6 +390,7 @@ class ScorePopper extends Phaser.GameObjects.BitmapText {
         this.setScale(Math.max(1, 0.9 + 0.1*points));
         this.setAlpha(0);
         this.setOrigin(0.5);
+        this.hexes = hexes;
     }
 
     pop() {
@@ -331,6 +409,7 @@ class ScorePopper extends Phaser.GameObjects.BitmapText {
 class HexGrid extends Phaser.GameObjects.Group {
 
     grid: Matrix2D<Hex>;
+    hexes: Hex[];
     preview: Phaser.GameObjects.Image;
     triPreviews: Phaser.GameObjects.Image[];
 
@@ -344,6 +423,7 @@ class HexGrid extends Phaser.GameObjects.Group {
         super(scene);
 
         this.grid = new Matrix2D<Hex>();
+        this.hexes = [];
         this.size = size;
 
         this.scoreText = scene.add.bitmapText(900, 100, 'font', '0', 80);
@@ -359,6 +439,7 @@ class HexGrid extends Phaser.GameObjects.Group {
                     let h = new Hex(scene, r, c);
                     this.add(h);
                     this.grid.set(r, c, h);
+                    this.hexes.push(h);
                 }
             }
         }
@@ -411,9 +492,9 @@ class HexGrid extends Phaser.GameObjects.Group {
         this.triPreviews = [];
         for (let i = 0; i < 3; i++) {
             let p = scene.add.image(0, 0, 'hex2');
-            p.setScale(1);
+            p.setScale(0.5);
             p.setAlpha(0.5);
-            p.setVisible(false);
+            // p.setVisible(false);
             this.triPreviews.push(p);
         }
 
@@ -440,13 +521,13 @@ class HexGrid extends Phaser.GameObjects.Group {
                     if (this.grid.has(r-1, c) && this.grid.get(r-1, c).hexType !== 5) h.nwEdge.setAlpha(0);
                     else h.nwEdge.setAlpha(1);
 
-                    if (this.grid.has(r, c-1) && this.grid.get(r, c-1).hexType === h.hexType) h.wEdge.setAlpha(0.5);
+                    if (this.grid.has(r, c-1) && this.grid.get(r, c-1).hexType === h.hexType) h.wEdge.setAlpha(0.4);
                     else h.wEdge.setAlpha(1);
 
-                    if (this.grid.has(r+1, c-1) && this.grid.get(r+1, c-1).hexType === h.hexType) h.swEdge.setAlpha(0.5);
+                    if (this.grid.has(r+1, c-1) && this.grid.get(r+1, c-1).hexType === h.hexType) h.swEdge.setAlpha(0.4);
                     else h.swEdge.setAlpha(1);
 
-                    if (this.grid.has(r+1, c) && this.grid.get(r+1, c).hexType === h.hexType) h.seEdge.setAlpha(0.5);
+                    if (this.grid.has(r+1, c) && this.grid.get(r+1, c).hexType === h.hexType) h.seEdge.setAlpha(0.4);
                     else h.seEdge.setAlpha(1);
                 }
             }
@@ -499,14 +580,11 @@ class HexGrid extends Phaser.GameObjects.Group {
             hexes[2] && hexes[2].hexType === 0) {
             for (let i = 0; i < 3; i++) {
                 
-                this.triPreviews[i].setTint(0xffffff);
-                this.triPreviews[i].setTexture(['white', 'windmill-bw', 'park-bw', 'street-bw'][trihex.hexes[i]]);
-                this.triPreviews[i].setVisible(true);
+                this.triPreviews[i].setTexture(['white', 'windmill-bw', 'grass-bw', 'street-bw'][trihex.hexes[i]]);
             }
         } else {
             for (let i = 0; i < 3; i++) {
-                this.triPreviews[i].setTexture('white');
-                this.triPreviews[i].setTint(0xff0000);
+                this.triPreviews[i].setTexture(['white', 'windmill-red', 'grass-red', 'street-red'][trihex.hexes[i]]);
             }
         }
     }
@@ -606,8 +684,11 @@ class HexGrid extends Phaser.GameObjects.Group {
             while (uncountedParks.length >= 3) {
                 let newParks = uncountedParks.splice(0, 3);
                 newParks[0].counted = true;
+                newParks[0].setTexture('tree');
                 newParks[1].counted = true;
+                newParks[1].setTexture('tree');
                 newParks[2].counted = true;
+                newParks[2].setTexture('tree');
                 this.scoreQueue.enq(new ScorePopper(this.scene, newParks, 5));
             }
         } else if (hex.hexType === 3) {
@@ -640,6 +721,9 @@ class HexGrid extends Phaser.GameObjects.Group {
             this.score += p.points;
             this.scoreText.setText(String(this.score));
             console.log('pop!')
+            if (p.hexes && p.hexes[0].hexType === 3) {
+                p.hexes[0].setTexture('house');
+            }
         }
     }
 }
@@ -680,11 +764,13 @@ export class MainScene extends Phaser.Scene {
 
         // small = 4
         // large = 5
-        this.grid = new HexGrid(this, 5, 8);
+        // this.grid = new HexGrid(this, 5, 8);
+        this.grid = new HexGrid(this, 4, 5);
 
         // small = 16
         // large = 25
-        this.trihexDeck = this.createTrihexDeck(25, true);
+        // this.trihexDeck = this.createTrihexDeck(25, true);
+        this.trihexDeck = this.createTrihexDeck(16, false);
 
         this.pickNextTrihex();
 
@@ -699,6 +785,7 @@ export class MainScene extends Phaser.Scene {
             
             this.bigPreviewTrihex.push(h);
         }
+
 
         this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
         this.input.on(Phaser.Input.Events.POINTER_MOVE, this.onPointerMove, this);
@@ -794,5 +881,9 @@ export class MainScene extends Phaser.Scene {
 
     update(time: number, delta: number) {
         super.update(time, delta);
+
+        for (let hex of this.grid.hexes) {
+            hex.update(time, delta);
+        }
     }
 }

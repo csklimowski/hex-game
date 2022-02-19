@@ -8,10 +8,6 @@ export class LoadScene extends Phaser.Scene {
 
     preload() {
         this.add.text(20, 20, 'Loading...');
-        this.load.image('hex', 'img/hex.png');
-        this.load.image('hex2', 'img/hex2.png');
-        this.load.image('hex3', 'img/hex3.png');
-        this.load.image('hex4', 'img/hex4.png');
 
         this.load.image('white', 'img/white.png');
 
@@ -21,17 +17,30 @@ export class LoadScene extends Phaser.Scene {
         this.load.image('edge-w', 'img/edge-w.png');
         this.load.image('edge-sw', 'img/edge-sw.png');
         this.load.image('edge-se', 'img/edge-se.png');
-        this.load.image('park-bw', 'img/park-bw.png');
-        this.load.image('park-color', 'img/park-color.png');
-        this.load.image('windmill-bw', 'img/windmill-bw.png');
-        this.load.image('windmill-color', 'img/windmill-color.png');
+
+        this.load.image('empty', 'img/empty.png');
+        this.load.image('empty-hill', 'img/empty-hill.png');
+
+        this.load.image('grass', 'img/grass.png');
+        this.load.image('grass-bw', 'img/grass-bw.png');
+        this.load.image('grass-red', 'img/grass-red.png');
+        this.load.image('tree', 'img/tree.png');
+
+        this.load.image('street', 'img/street.png');
+        this.load.image('street-red', 'img/street-red.png');
         this.load.image('street-bw', 'img/street-bw.png');
-        this.load.image('street-color', 'img/street-color.png');
-        this.load.image('hill', 'img/hill.png');
-        this.load.image('windmill-color-hill', 'img/windmill-color-hill.png');
+        this.load.image('house', 'img/house.png');
+
+        this.load.image('windmill', 'img/windmill.png');
+        this.load.image('propeller', 'img/propeller.png');
+        this.load.image('windmill-red', 'img/windmill-red.png');
+        this.load.image('windmill-hill', 'img/windmill-hill.png');
+        this.load.image('windmill-bw', 'img/windmill-bw.png');
+
         this.load.image('center', 'img/center.png');
         this.load.image('port', 'img/port.png');
         this.load.image('rotate', 'img/rotate.png');
+        this.load.image('paper-texture', 'img/paper-texture.png');
 
         this.load.bitmapFont('font', 'font/font.png', 'font/font.fnt');
     }

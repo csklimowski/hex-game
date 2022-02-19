@@ -9,7 +9,7 @@ new Phaser.Game({
         LoadScene,
         MainScene
     ],
-    backgroundColor: 0xaabad5,
+    backgroundColor: 0x90C7E5,
     scale: {
         autoCenter: Phaser.Scale.CENTER_BOTH,
         mode: Phaser.Scale.FIT,
