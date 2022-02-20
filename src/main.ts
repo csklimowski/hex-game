@@ -238,6 +238,47 @@ class Hex extends Phaser.GameObjects.Image {
         this.propeller.setDepth(2);
     }
 
+    setX(x: number) {
+        super.setX(x);
+        this.eEdge.setX(x);
+        this.neEdge.setX(x);
+        this.nwEdge.setX(x);
+        this.wEdge.setX(x);
+        this.swEdge.setX(x);
+        this.seEdge.setX(x);
+        this.propeller.setX(x);
+        return this;
+    }
+
+    setY(y: number) {
+        super.setY(y);
+        this.eEdge.setY(y);
+        this.neEdge.setY(y);
+        this.nwEdge.setY(y);
+        this.wEdge.setY(y);
+        this.swEdge.setY(y);
+        this.seEdge.setY(y);
+        this.propeller.setY(y);
+        return this;
+    }
+
+    embiggen() {
+        this.eEdge.setScale(1);
+        this.neEdge.setScale(1);
+        this.nwEdge.setScale(1);
+        this.wEdge.setScale(1);
+        this.swEdge.setScale(1);
+        this.seEdge.setScale(1);
+        this.eEdge.setAlpha(1);
+        this.neEdge.setAlpha(1);
+        this.nwEdge.setAlpha(1);
+        this.wEdge.setAlpha(1);
+        this.swEdge.setAlpha(1);
+        this.seEdge.setAlpha(1);
+        this.propeller.setScale(1);
+        this.setScale(1);
+    }
+
     setType(hexType: number) {
         this
         this.setTexture(['empty', 'windmill', 'grass', 'street', 'center', 'port'][hexType]);
@@ -245,11 +286,13 @@ class Hex extends Phaser.GameObjects.Image {
         if (hexType === 1) {
             this.propeller.setVisible(true);
             if (this.hasHill) {
-                this.propeller.setY(this.y - 35);
+                this.propeller.setY(this.y - 70*this.scale);
                 this.setTexture('windmill-hill');
             } else {
-                this.propeller.setY(this.y - 15);
+                this.propeller.setY(this.y - 30*this.scale);
             }
+        } else {
+            this.propeller.setVisible(false);
         }
 
         if (hexType === 5) {
@@ -269,7 +312,7 @@ class Hex extends Phaser.GameObjects.Image {
 
     update(time: number, delta: number) {
         if (this.propeller.visible) {
-            let speed = (this.hasHill && this.counted) ? 2 : this.counted ? 1 : 0;
+            let speed = (this.hasHill && this.counted) ? 2 : this.counted ? 1 : 0.1;
             this.propeller.setAngle(this.propeller.angle + speed*0.1*delta)
         }
     }
@@ -724,6 +767,10 @@ class HexGrid extends Phaser.GameObjects.Group {
             if (p.hexes && p.hexes[0].hexType === 3) {
                 p.hexes[0].setTexture('house');
             }
+
+            if (p.hexes && p.hexes[0].hexType === 5) {
+                p.hexes[0].setTexture('port-color');
+            }
         }
     }
 }
@@ -762,15 +809,17 @@ export class MainScene extends Phaser.Scene {
 
     create() {
 
+        this.add.image(640, 360, 'background');
+
         // small = 4
         // large = 5
-        // this.grid = new HexGrid(this, 5, 8);
-        this.grid = new HexGrid(this, 4, 5);
+        this.grid = new HexGrid(this, 5, 8);
+        // this.grid = new HexGrid(this, 4, 5);
 
         // small = 16
         // large = 25
-        // this.trihexDeck = this.createTrihexDeck(25, true);
-        this.trihexDeck = this.createTrihexDeck(16, false);
+        this.trihexDeck = this.createTrihexDeck(25, true);
+        // this.trihexDeck = this.createTrihexDeck(16, false);
 
         this.pickNextTrihex();
 
@@ -780,11 +829,11 @@ export class MainScene extends Phaser.Scene {
             
 
             let h = new Hex(this, -1, -1);
-            h.setX(700 + HEX_WIDTH*offsets.co);
-            h.setY(400 + HEX_HEIGHT*offsets.ro);
+            h.embiggen();
             
             this.bigPreviewTrihex.push(h);
         }
+        this.updateBigTrihex();
 
 
         this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
@@ -808,6 +857,19 @@ export class MainScene extends Phaser.Scene {
         this.nextTrihex.rotateRight();
 
         this.grid.updateTriPreview(this.input.activePointer.worldX, this.input.activePointer.worldY, this.nextTrihex);
+        this.updateBigTrihex();
+    }
+
+    updateBigTrihex() {
+        for (let i = 0; i < 3; i++) {
+            let row = shapes[this.nextTrihex.shape][i].ro;
+            let col = shapes[this.nextTrihex.shape][i].co;
+
+            this.bigPreviewTrihex[i].setX(950 + HEX_WIDTH*2*(col + 0.5*row))
+            this.bigPreviewTrihex[i].setY(325 + HEX_HEIGHT*1.5*row)
+
+            this.bigPreviewTrihex[i].setType(this.nextTrihex.hexes[i]);
+        }
     }
 
     createTrihexDeck(size: number, allShapes?: boolean): Trihex[] {
@@ -867,6 +929,7 @@ export class MainScene extends Phaser.Scene {
     onPointerDown(event) {
         if (this.grid.placeTrihex(event.worldX, event.worldY, this.nextTrihex)) {
             this.pickNextTrihex();
+            this.updateBigTrihex();
         }
     }
 

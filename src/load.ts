@@ -30,6 +30,7 @@ export class LoadScene extends Phaser.Scene {
         this.load.image('street-red', 'img/street-red.png');
         this.load.image('street-bw', 'img/street-bw.png');
         this.load.image('house', 'img/house.png');
+        this.load.image('center', 'img/center.png');
 
         this.load.image('windmill', 'img/windmill.png');
         this.load.image('propeller', 'img/propeller.png');
@@ -37,10 +38,10 @@ export class LoadScene extends Phaser.Scene {
         this.load.image('windmill-hill', 'img/windmill-hill.png');
         this.load.image('windmill-bw', 'img/windmill-bw.png');
 
-        this.load.image('center', 'img/center.png');
         this.load.image('port', 'img/port.png');
+        this.load.image('port-color', 'img/port-color.png');
         this.load.image('rotate', 'img/rotate.png');
-        this.load.image('paper-texture', 'img/paper-texture.png');
+        this.load.image('background', 'img/background.png');
 
         this.load.bitmapFont('font', 'font/font.png', 'font/font.fnt');
     }
