@@ -1,4 +1,5 @@
 import { MainScene } from './main';
+import { MenuScene } from './main';
 import { LoadScene } from './load';
 
 new Phaser.Game({
@@ -7,6 +8,7 @@ new Phaser.Game({
     parent: 'game',
     scene: [
         LoadScene,
+        MenuScene,
         MainScene
     ],
     backgroundColor: 0x90C7E5,

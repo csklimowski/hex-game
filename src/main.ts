@@ -31,6 +31,52 @@ function shuffle(array) {
     return result
 }
 
+export class Button extends Phaser.GameObjects.Sprite {
+
+    enabled: boolean;
+    clickable: boolean;
+    onDownCallback: () => void;
+    down: boolean;
+
+    constructor(scene: Phaser.Scene, x: number, y: number, texture: string, onDownCallback: () => void) {
+        super(scene, x, y, texture);
+        scene.add.existing(this);
+
+        this.onDownCallback = onDownCallback;
+
+        this.down = false;
+
+        this.setInteractive();
+        this.on(Phaser.Input.Events.POINTER_DOWN, this.onDown, this);
+        this.on(Phaser.Input.Events.POINTER_OUT, this.onOut, this);
+        this.on(Phaser.Input.Events.POINTER_OVER, this.onOver, this);
+        this.on(Phaser.Input.Events.POINTER_UP, this.onUp, this);
+    }
+
+    onOver() {
+        this.setFrame(1);
+    }
+
+    onOut() {
+        this.setFrame(0);
+        this.down = false;
+        this.setScale(1);
+    }
+
+    onUp() {
+        this.setScale(1);
+        if (this.down) {
+            this.onDownCallback();
+        }
+    }
+
+    onDown() {
+        this.setScale(0.9);
+        this.down = true;
+        this.setFrame(1);
+    }
+}
+
 class Queue<Type> {
 
     data: Map<number, Type>;
@@ -190,6 +236,7 @@ class Hex extends Phaser.GameObjects.Image {
     wEdge: Phaser.GameObjects.Image;
     swEdge: Phaser.GameObjects.Image;
     seEdge: Phaser.GameObjects.Image;
+    edges: Phaser.GameObjects.Group;
     propeller: Phaser.GameObjects.Image;
 
     constructor(scene: Phaser.Scene, row: number, col: number) {
@@ -212,18 +259,9 @@ class Hex extends Phaser.GameObjects.Image {
         this.wEdge = scene.add.image(x, y, 'edge-w');
         this.swEdge = scene.add.image(x, y, 'edge-sw');
         this.seEdge = scene.add.image(x, y, 'edge-se');
-        this.eEdge.setAlpha(0);
-        this.neEdge.setAlpha(0);
-        this.nwEdge.setAlpha(0);
-        this.wEdge.setAlpha(0);
-        this.swEdge.setAlpha(0);
-        this.seEdge.setAlpha(0);
-        this.eEdge.setDepth(1);
-        this.neEdge.setDepth(1);
-        this.nwEdge.setDepth(1);
-        this.wEdge.setDepth(1);
-        this.swEdge.setDepth(1);
-        this.seEdge.setDepth(1);
+        this.edges = scene.add.group([this.eEdge, this.neEdge, this.nwEdge, this.wEdge, this.swEdge, this.seEdge])
+        this.edges.setDepth(1);
+        this.edges.setAlpha(1);
 
         this.eEdge.setScale(0.5);
         this.neEdge.setScale(0.5);
@@ -269,12 +307,9 @@ class Hex extends Phaser.GameObjects.Image {
         this.wEdge.setScale(1);
         this.swEdge.setScale(1);
         this.seEdge.setScale(1);
-        this.eEdge.setAlpha(1);
-        this.neEdge.setAlpha(1);
-        this.nwEdge.setAlpha(1);
-        this.wEdge.setAlpha(1);
-        this.swEdge.setAlpha(1);
-        this.seEdge.setAlpha(1);
+        this.edges.setAlpha(1);
+        this.edges.setDepth(5);
+        this.propeller.setDepth(6);
         this.propeller.setScale(1);
         this.setScale(1);
     }
@@ -469,7 +504,8 @@ class HexGrid extends Phaser.GameObjects.Group {
         this.hexes = [];
         this.size = size;
 
-        this.scoreText = scene.add.bitmapText(900, 100, 'font', '0', 80);
+        this.scoreText = scene.add.bitmapText(940, 30, 'font', 'Score: 0', 70);
+        this.scoreText.setDepth(4);
         this.score = 0;
 
         this.scoreQueue = new Queue<ScorePopper>();
@@ -762,7 +798,7 @@ class HexGrid extends Phaser.GameObjects.Group {
             let p = this.scoreQueue.deq();
             p.pop();
             this.score += p.points;
-            this.scoreText.setText(String(this.score));
+            this.scoreText.setText("Score: " + String(this.score));
             console.log('pop!')
             if (p.hexes && p.hexes[0].hexType === 3) {
                 p.hexes[0].setTexture('house');
@@ -809,7 +845,7 @@ export class MainScene extends Phaser.Scene {
 
     create() {
 
-        this.add.image(640, 360, 'background');
+        this.add.image(730, 340, 'waves').setScale(0.5);
 
         // small = 4
         // large = 5
@@ -827,13 +863,24 @@ export class MainScene extends Phaser.Scene {
         for (let i = 0; i < 3; i++) {
             let offsets = shapes[this.nextTrihex.shape];
             
-
             let h = new Hex(this, -1, -1);
             h.embiggen();
+            h.setDepth(4);
+            
             
             this.bigPreviewTrihex.push(h);
         }
         this.updateBigTrihex();
+
+
+        let foreground = this.add.image(625, 360, 'page');
+        foreground.setDepth(3);
+        this.tweens.add({
+            targets: foreground,
+            props: { x: 1480 },
+            duration: 500
+        })
+
 
 
         this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
@@ -865,7 +912,7 @@ export class MainScene extends Phaser.Scene {
             let row = shapes[this.nextTrihex.shape][i].ro;
             let col = shapes[this.nextTrihex.shape][i].co;
 
-            this.bigPreviewTrihex[i].setX(950 + HEX_WIDTH*2*(col + 0.5*row))
+            this.bigPreviewTrihex[i].setX(1050 + HEX_WIDTH*2*(col + 0.5*row))
             this.bigPreviewTrihex[i].setY(325 + HEX_HEIGHT*1.5*row)
 
             this.bigPreviewTrihex[i].setType(this.nextTrihex.hexes[i]);
@@ -948,5 +995,82 @@ export class MainScene extends Phaser.Scene {
         for (let hex of this.grid.hexes) {
             hex.update(time, delta);
         }
+    }
+}
+
+
+export class MenuScene extends Phaser.Scene {
+
+    menu: Phaser.GameObjects.Group;
+    background: Phaser.GameObjects.Image;
+
+    constructor() {
+        super('menu');
+    }
+
+    create() {
+        this.menu = this.add.group();
+
+        this.background = this.add.image(625, 360, 'page');
+
+        // let presents = this.add.bitmapText(640, 70, 'font', 'Chris Klimowski presents', 40);
+        // presents.setOrigin(0.5);
+
+        let title = this.add.bitmapText(640, 100, 'font', '"SIX-SIDED STREETS"', 80);
+        title.setOrigin(0.5);
+        this.menu.add(title);
+
+        let byline = this.add.bitmapText(640, 190, 'font', 'a tile-laying game by Chris Klimowski', 40);
+        byline.setOrigin(0.5);
+        this.menu.add(byline);
+        // this.score = 0;
+
+        let playButton = new Button(this, 640, 600, 'play-button', this.play.bind(this));
+        this.menu.add(playButton);
+
+        let howToPlayButton = new Button(this, 640, 450, 'how-to-play-button', this.howToPlay.bind(this));
+        this.menu.add(howToPlayButton);
+
+        let grid = new HexGrid(this, 3, 0);
+
+
+        let tutorialGrid = [
+            [null, null, null, 5,  3,  2,  5],
+                [null, null, 2,  3,  2,  1,  3],
+                    [null, 2,  1,  3,  2,  3,  3],
+                        [5,  3,  2,  4,  2,  1,  5],
+                          [2,  2,  2,  3,  3,  1, null],
+                            [2,  2,  3,  1,  2, null, null],
+                              [5,  3,  3,  5, null, null, null]
+        ];
+
+        for (let r = 0; r < tutorialGrid.length; r++) {
+            for (let c = 0; c < tutorialGrid.length; c++) {
+                if (grid.grid.has(r, c)) {
+                    grid.grid.get(r, c).setType(tutorialGrid[r][c]);
+                }
+            }
+        }
+
+        grid.updateEdges();
+
+        // this.tweens.add({
+        //     targets: this.cameras.main,
+        //     props: { y: 720 },
+        //     duration: 500
+        // });
+    }
+
+    play() {
+        this.scene.start('main');
+    }
+
+    howToPlay() {
+        this.cameras.main.y = 720;
+    }
+
+    update(time: number, delta: number) {
+        
+
     }
 }
