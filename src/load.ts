@@ -25,21 +25,25 @@ export class LoadScene extends Phaser.Scene {
         this.load.image('grass-bw', 'img/grass-bw.png');
         this.load.image('grass-red', 'img/grass-red.png');
         this.load.image('tree', 'img/tree.png');
+        this.load.image('tree-bw', 'img/tree-bw.png');
 
         this.load.image('street', 'img/street.png');
         this.load.image('street-red', 'img/street-red.png');
         this.load.image('street-bw', 'img/street-bw.png');
         this.load.image('house', 'img/house.png');
+        this.load.image('house-bw', 'img/house-bw.png');
         this.load.image('center', 'img/center.png');
+        this.load.image('center-bw', 'img/center-bw.png');
 
         this.load.image('windmill', 'img/windmill.png');
         this.load.image('propeller', 'img/propeller.png');
         this.load.image('windmill-red', 'img/windmill-red.png');
         this.load.image('windmill-hill', 'img/windmill-hill.png');
         this.load.image('windmill-bw', 'img/windmill-bw.png');
+        this.load.image('windmill-hill-bw', 'img/windmill-hill-bw.png');
 
-        this.load.image('port', 'img/port.png');
-        this.load.image('port-color', 'img/port-color.png');
+        this.load.image('port-bw', 'img/port.png');
+        this.load.image('port', 'img/port-color.png');
         this.load.image('rotate', 'img/rotate.png');
         this.load.image('page', 'img/page.png');
         this.load.image('waves', 'img/waves.png');
