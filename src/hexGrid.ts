@@ -58,7 +58,14 @@ export const shapes = {
         { ro:  0, co: 0 },
         { ro:  0, co: 1 }
     ]
-}
+};
+
+export const rotations = {
+    'a': ['a', 'v'],
+    'v': ['a', 'v'],
+    '\\': ['\\', '-', '/'],
+    'c': ['c', 'r', 'n', 'd', 'j', 'l']
+};
 
 export class Hex extends Phaser.GameObjects.Image {
 
@@ -143,17 +150,17 @@ export class Hex extends Phaser.GameObjects.Image {
     }
 
     embiggen() {
-        this.eEdge.setScale(1);
-        this.neEdge.setScale(1);
-        this.nwEdge.setScale(1);
-        this.wEdge.setScale(1);
-        this.swEdge.setScale(1);
-        this.seEdge.setScale(1);
+        this.eEdge.setScale(0.75);
+        this.neEdge.setScale(0.75);
+        this.nwEdge.setScale(0.75);
+        this.wEdge.setScale(0.75);
+        this.swEdge.setScale(0.75);
+        this.seEdge.setScale(0.75);
         this.edges.setAlpha(1);
         this.edges.setDepth(5);
         this.propeller.setDepth(6);
-        this.propeller.setScale(1);
-        this.setScale(1);
+        this.propeller.setScale(0.75);
+        this.setScale(0.75);
     }
 
     setType(hexType: number) {
@@ -301,42 +308,41 @@ export class Trihex {
     rotateLeft() {
         if (this.shape === 'a') {
             this.shape = 'v';
-            let temp = this.hexes[0];
-            this.hexes[0] = this.hexes[1];
-            this.hexes[1] = temp;
-        } else if (this.shape === 'v') {
-            this.shape = 'a';
             let temp = this.hexes[1];
             this.hexes[1] = this.hexes[2];
             this.hexes[2] = temp;
+        } else if (this.shape === 'v') {
+            this.shape = 'a';
+            let temp = this.hexes[0];
+            this.hexes[0] = this.hexes[1];
+            this.hexes[1] = temp;
         } else if (this.shape === '\\') {
-            this.shape = '/';
-        } else if (this.shape === '/') {
             this.shape = '-';
-            let temp = this.hexes[0];
-            this.hexes[0] = this.hexes[2];
-            this.hexes[2] = temp;
-        } else if (this.shape === '-') {
+        } else if (this.shape === '/') {
             this.shape = '\\';
+        } else if (this.shape === '-') {
+            this.shape = '/';
+            let temp = this.hexes[0];
+            this.hexes[0] = this.hexes[2];
+            this.hexes[2] = temp;
         } else if (this.shape === 'c') {
-            this.shape = 'r';
-        } else if (this.shape === 'r') {
-            this.shape = 'n';
-            let temp = this.hexes[0];
-            this.hexes[0] = this.hexes[2];
-            this.hexes[2] = temp;
-
-        } else if (this.shape === 'n') {
-            this.shape = 'd';
-        } else if (this.shape === 'd') {
-            this.shape = 'j';
-        } else if (this.shape === 'j') {
             this.shape = 'l';
+        } else if (this.shape === 'r') {
+            this.shape = 'c';
+        } else if (this.shape === 'n') {
+            this.shape = 'r';
             let temp = this.hexes[0];
             this.hexes[0] = this.hexes[2];
             this.hexes[2] = temp;
+        } else if (this.shape === 'd') {
+            this.shape = 'n';
+        } else if (this.shape === 'j') {
+            this.shape = 'd';
         } else if (this.shape === 'l') {
-            this.shape = 'c';
+            this.shape = 'j';
+            let temp = this.hexes[0];
+            this.hexes[0] = this.hexes[2];
+            this.hexes[2] = temp;
         }
     }
 }
@@ -475,6 +481,25 @@ export class HexGrid extends Phaser.GameObjects.Group {
                 }
             }
         }
+    }
+
+    canPlaceShape(shape: string) {
+        
+
+        for (let hex of this.hexes) {
+            if (hex.hexType === 0) {
+                for (let rotation of rotations[shape]) {
+                    for (let offsets of shapes[rotation]) {
+                        let r = hex.row + offsets.ro;
+                        let c = hex.col + offsets.co;
+                        if (!(this.grid.has(r, c) && this.grid.get(r, c).hexType === 0)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     neighbors(row: number, col: number) {

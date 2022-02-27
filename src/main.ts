@@ -7,8 +7,13 @@ export class MainScene extends Phaser.Scene {
 
     nextType: number;
     nextTrihex: Trihex;
+    nextNextTrihex: Trihex;
     trihexDeck: Trihex[];
     bigPreviewTrihex: Hex[];
+    deckCounterImage: Phaser.GameObjects.Image;
+    deckCounterText: Phaser.GameObjects.BitmapText;
+    rotateLeftButton: Button;
+    rotateRightButton: Button;
 
     scoreText: Phaser.GameObjects.BitmapText;
 
@@ -32,21 +37,32 @@ export class MainScene extends Phaser.Scene {
         // large = 25
         this.trihexDeck = this.createTrihexDeck(25, true);
         // this.trihexDeck = this.createTrihexDeck(16, false);
+        
+        this.deckCounterImage = this.add.image(950, 620, 'a-shape');
+        this.deckCounterImage.setDepth(3.5);
+        this.deckCounterImage.setAlpha(0.5);
+        this.deckCounterText = this.add.bitmapText(950, 620, 'font', String(this.trihexDeck.length), 50, )
+        this.deckCounterText.setOrigin(0.5, 0.4);
+        this.deckCounterText.setDepth(3.6);
 
+        this.rotateLeftButton = new Button(this, 950, 325, 'rotate', this.rotateLeft.bind(this));
+        this.rotateLeftButton.setDepth(3.5);
+        this.rotateLeftButton.setFlipX(true);
+        this.rotateRightButton = new Button(this, 1150, 325, 'rotate', this.rotateRight.bind(this));
+        this.rotateRightButton.setDepth(3.5);
+        
         this.pickNextTrihex();
 
         this.bigPreviewTrihex = [];
         for (let i = 0; i < 3; i++) {
-            let offsets = shapes[this.nextTrihex.shape];
-            
             let h = new Hex(this, 0, 0, -1, -1);
             h.embiggen();
             h.setDepth(4);
-            
-            
             this.bigPreviewTrihex.push(h);
         }
         this.updateBigTrihex();
+
+
 
 
         let foreground = this.add.image(625, 360, 'page');
@@ -73,20 +89,28 @@ export class MainScene extends Phaser.Scene {
 
     onMouseWheel(pointer, gameObjects, deltaX, deltaY, deltaZ) {
         if (deltaY > 0) {
-            this.rotateNextTrihex(false);
+            this.rotateRight();
         }
         if (deltaY < 0) {
-            this.rotateNextTrihex(true);
+            this.rotateLeft();
         }
     }
 
-    rotateNextTrihex(counterClockwise?: boolean) {
-        if (counterClockwise) this.nextTrihex.rotateLeft();
-        else this.nextTrihex.rotateRight();
-        
-
+    rotateRight() {
+        this.nextTrihex.rotateRight();
         this.grid.updateTriPreview(this.input.activePointer.worldX, this.input.activePointer.worldY, this.nextTrihex);
         this.updateBigTrihex();
+    }
+
+    rotateLeft() {
+        this.nextTrihex.rotateLeft();
+        this.grid.updateTriPreview(this.input.activePointer.worldX, this.input.activePointer.worldY, this.nextTrihex);
+        this.updateBigTrihex();
+    }
+
+    rotateNextTrihex(counterClockwise?: boolean) {
+
+        
     }
 
     updateBigTrihex() {
@@ -94,8 +118,8 @@ export class MainScene extends Phaser.Scene {
             let row = shapes[this.nextTrihex.shape][i].ro;
             let col = shapes[this.nextTrihex.shape][i].co;
 
-            this.bigPreviewTrihex[i].setX(1050 + HEX_WIDTH*2*(col + 0.5*row))
-            this.bigPreviewTrihex[i].setY(325 + HEX_HEIGHT*1.5*row)
+            this.bigPreviewTrihex[i].setX(1050 + HEX_WIDTH*1.5*(col + 0.5*row))
+            this.bigPreviewTrihex[i].setY(325 + HEX_HEIGHT*1.125*row)
 
             this.bigPreviewTrihex[i].setType(this.nextTrihex.hexes[i]);
         }
@@ -108,7 +132,7 @@ export class MainScene extends Phaser.Scene {
                 if (i < size/3) {
                     deck.push(new Trihex(0, 0, 0, 'c'));
                 } else if (i < size/1.5) {
-                    deck.push(new Trihex(0, 0, 0, '\\'));
+                    deck.push(new Trihex(0, 0, 0, '/'));
                 } else {
                     deck.push(new Trihex(0, 0, 0, 'a'));
                 }
@@ -141,8 +165,6 @@ export class MainScene extends Phaser.Scene {
             }
             deck[i].hexes = shuffle(deck[i].hexes);
         }
-        for (let i = 0; i < size; i++) {
-        }
         deck = shuffle(deck);
         return deck;
     }
@@ -150,7 +172,22 @@ export class MainScene extends Phaser.Scene {
     pickNextTrihex() {
         if (this.trihexDeck.length > 0) {
             this.nextTrihex = this.trihexDeck.pop();
+
+            this.deckCounterText.setText(String(this.trihexDeck.length));
+
+            if (this.trihexDeck.length > 0) {
+                this.deckCounterImage.setTexture({
+                    'a': 'a-shape',
+                    '/': 'slash-shape',
+                    'c': 'c-shape'
+                }[this.trihexDeck[this.trihexDeck.length-1].shape])
+            } else {
+                this.deckCounterImage.setVisible(false);
+                this.deckCounterText.setText('');
+            }
+            
         } else {
+            
             this.nextTrihex = new Trihex(0, 0, 0, 'a');
         }
     }
@@ -159,6 +196,9 @@ export class MainScene extends Phaser.Scene {
         if (this.grid.placeTrihex(event.worldX, event.worldY, this.nextTrihex)) {
             this.pickNextTrihex();
             this.updateBigTrihex();
+            if (!this.grid.canPlaceShape(this.nextTrihex.shape)) {
+
+            }
         }
     }
 
@@ -168,7 +208,12 @@ export class MainScene extends Phaser.Scene {
     }
 
     onKeyDown(event) {
-        this.rotateNextTrihex();
+        if (event.keyCode === 39) {
+            this.rotateRight();
+        }
+        if (event.keyCode === 37) {
+            this.rotateLeft();
+        }
     }
 
     update(time: number, delta: number) {
