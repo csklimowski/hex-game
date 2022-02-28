@@ -42,6 +42,8 @@ export class LoadScene extends Phaser.Scene {
         this.load.image('windmill-bw', 'img/windmill-bw.png');
         this.load.image('windmill-hill-bw', 'img/windmill-hill-bw.png');
 
+        this.load.image('blue', 'img/blue.png');
+
         this.load.image('port-bw', 'img/port.png');
         this.load.image('port', 'img/port-color.png');
         this.load.spritesheet('rotate', 'img/rotate.png', {frameWidth: 250, frameHeight: 250});
@@ -52,8 +54,10 @@ export class LoadScene extends Phaser.Scene {
         this.load.image('c-shape', 'img/c-shape.png');
         this.load.image('slash-shape', 'img/slash-shape.png');
 
-        this.load.spritesheet('play-button', 'img/play-button.png', { frameWidth: 289, frameHeight: 115 });
-        this.load.spritesheet('how-to-play-button', 'img/how-to-play-button.png', {frameWidth: 289, frameHeight: 91});
+        this.load.spritesheet('tutorial-button', 'img/tutorial-button.png', {frameWidth: 811, frameHeight: 91})
+
+        this.load.image('play-button', 'img/play-button.png');
+        this.load.image('how-to-play-button', 'img/how-to-play-button.png');
 
         this.load.bitmapFont('font', 'font/font.png', 'font/font.fnt');
     }

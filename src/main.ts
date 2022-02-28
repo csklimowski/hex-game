@@ -45,10 +45,10 @@ export class MainScene extends Phaser.Scene {
         this.deckCounterText.setOrigin(0.5, 0.4);
         this.deckCounterText.setDepth(3.6);
 
-        this.rotateLeftButton = new Button(this, 950, 325, 'rotate', this.rotateLeft.bind(this));
+        this.rotateLeftButton = new Button(this, 925, 180, 'rotate', this.rotateLeft.bind(this));
         this.rotateLeftButton.setDepth(3.5);
         this.rotateLeftButton.setFlipX(true);
-        this.rotateRightButton = new Button(this, 1150, 325, 'rotate', this.rotateRight.bind(this));
+        this.rotateRightButton = new Button(this, 1175, 180, 'rotate', this.rotateRight.bind(this));
         this.rotateRightButton.setDepth(3.5);
         
         this.pickNextTrihex();
@@ -65,12 +65,12 @@ export class MainScene extends Phaser.Scene {
 
 
 
-        let foreground = this.add.image(625, 360, 'page');
+        let foreground = this.add.image(720, 360, 'page');
         foreground.setDepth(3);
         this.tweens.add({
             targets: foreground,
-            props: { x: 1480 },
-            duration: 500
+            props: { x: 2080 },
+            duration: 1000
         })
 
 
@@ -106,11 +106,6 @@ export class MainScene extends Phaser.Scene {
         this.nextTrihex.rotateLeft();
         this.grid.updateTriPreview(this.input.activePointer.worldX, this.input.activePointer.worldY, this.nextTrihex);
         this.updateBigTrihex();
-    }
-
-    rotateNextTrihex(counterClockwise?: boolean) {
-
-        
     }
 
     updateBigTrihex() {
@@ -226,11 +221,11 @@ export class MainScene extends Phaser.Scene {
 }
 
 let tutorialTexts = [
-    "Place hexes to grow your town outward\nfrom the TOWN HALL\n\n\nTry to get the highest score you can!",
-    "STREET hexes are worth 1 point each\nif they're connected to the Town Hall\n\nAdditionally, every PORT that you\nconnect to the Town Hall with\nStreets is worth 3 points!",
+    "Place trios of hexes to grow your town\noutward from the TOWN CENTER\n\n\nTry to get the highest score you can!",
+    "STREET hexes are worth 1 point each\nif they're connected to the Town Center\n\nAdditionally, every PORT that you\nconnect to the Town Hall with\nStreets is worth 3 points!",
     "WIND TURBINES are worth 1 point if\nthey're not adjacent to any other\nWind Turbines\n\nIf they are also placed on a HILL,\nthey're worth 3 points!",
     "Those are PARKS!\n\nEach group of connected Park hexes is\nworth 5 points for every 3 hexes in it",
-    "Yep! To recap:\n\n- Streets want to connect Ports\nto the Town Hall\n- Wind Turbines want to be alone and\non Hills\n- Parks want to be in multiples of 3\n\nGood luck!"
+    "Yep! To recap:\n- Streets want to connect Ports\nto the Town Center\n- Wind Turbines want to be alone and\non Hills\n- Parks want to be grouped in multiples\nof 3"
 ]
 
 let tutorialTypes = [
@@ -248,36 +243,39 @@ export class MenuScene extends Phaser.Scene {
     tutorialGrid: HexGrid;
     tutorialText: Phaser.GameObjects.BitmapText;
     tutorialPage: number;
+    tutorialButton: Button;
 
     constructor() {
         super('menu');
     }
 
     create() {
-        this.cameras.main.setBounds(0, -720, 1280, 1440);
+        this.cameras.main.setBounds(0, 0, 2560, 720);
         this.menu = this.add.group();
 
-        this.background = this.add.image(625, 0, 'page');
+        this.background = this.add.image(720, 360, 'page');
+
+        this.add.image(920, 360, 'blue');
 
         // let presents = this.add.bitmapText(640, 70, 'font', 'Chris Klimowski presents', 40);
         // presents.setOrigin(0.5);
 
-        let title = this.add.bitmapText(640, 100, 'font', '"SIX-SIDED STREETS"', 80);
-        title.setOrigin(0.5);
+        let title = this.add.bitmapText(50, 100, 'font', 'SIX-SIDED STREETS', 70);
+        // title.setOrigin(0.5);
         this.menu.add(title);
 
-        let byline = this.add.bitmapText(640, 190, 'font', 'a tile-laying game by Chris Klimowski', 40);
-        byline.setOrigin(0.5);
+        let byline = this.add.bitmapText(50, 190, 'font', 'a tile-laying game by Chris Klimowski', 40);
+        // byline.setOrigin(0.5);
         this.menu.add(byline);
         // this.score = 0;
 
-        let playButton = new Button(this, 640, 600, 'play-button', this.play.bind(this));
+        let playButton = new Button(this, 300, 400, 'play-button', this.play.bind(this));
         this.menu.add(playButton);
 
-        let howToPlayButton = new Button(this, 640, 450, 'how-to-play-button', this.howToPlay.bind(this));
+        let howToPlayButton = new Button(this, 300, 550, 'how-to-play-button', this.howToPlay.bind(this));
         this.menu.add(howToPlayButton);
 
-        let grid = new HexGrid(this, 3, 0, 690, -660);
+        let grid = new HexGrid(this, 3, 0, 700, 100);
         grid.grid.get(2, 2).setHill(true);
         grid.grid.get(4, 5).setHill(true);
 
@@ -292,7 +290,9 @@ export class MenuScene extends Phaser.Scene {
         ];
 
         this.tutorialPage = 0;
-        this.tutorialText = this.add.bitmapText(75, -580, 'font', tutorialTexts[0], 40);
+        this.tutorialText = this.add.bitmapText(1280, 200, 'font', tutorialTexts[0], 40);
+        this.tutorialButton = new Button(this, 1265, 550, 'tutorial-button', this.nextTutorialPage.bind(this));
+        this.tutorialButton.setOrigin(0, 0.5);
 
         for (let r = 0; r < tutorialGrid.length; r++) {
             for (let c = 0; c < tutorialGrid.length; c++) {
@@ -329,9 +329,6 @@ export class MenuScene extends Phaser.Scene {
         grid.updateEdges();
 
         this.tutorialGrid = grid;
-
-        
-        this.input.keyboard.on(Phaser.Input.Keyboard.Events.ANY_KEY_DOWN, this.nextTutorialPage, this);
     }
 
     play() {
@@ -339,14 +336,21 @@ export class MenuScene extends Phaser.Scene {
     }
 
     howToPlay() {
-        this.cameras.main.pan(0, -720, 1000, 'Power2');
+        this.tutorialPage = -1;
+        this.nextTutorialPage();
+        this.cameras.main.pan(1270, 0, 1000, 'Power2');
     }
 
     nextTutorialPage() {
         this.tutorialPage += 1;
-        this.tutorialText.setText(tutorialTexts[this.tutorialPage]);
-        for (let hex of this.tutorialGrid.hexes) {
-            hex.setSketchy(tutorialTypes[this.tutorialPage].indexOf(hex.hexType) === -1);
+        if (this.tutorialPage >= 5) {
+            this.cameras.main.pan(0, 0, 1000, 'Power2');
+        } else {
+            this.tutorialButton.setFrame(this.tutorialPage);
+            this.tutorialText.setText(tutorialTexts[this.tutorialPage]);
+            for (let hex of this.tutorialGrid.hexes) {
+                hex.setSketchy(tutorialTypes[this.tutorialPage].indexOf(hex.hexType) === -1);
+            }
         }
     }
 

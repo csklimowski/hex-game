@@ -228,8 +228,8 @@ export class Hex extends Phaser.GameObjects.Image {
             if (this.hexType === 0) {
                 this.setTexture('empty');
             } else if (this.hexType === 1) {
-                if (this.hasHill) this.setTexture('windmill');
-                else this.setTexture('windmill-hill');
+                if (this.hasHill) this.setTexture('windmill-hill');
+                else this.setTexture('windmill');
                 this.propeller.setVisible(true);
             } else if (this.hexType === 2) {
                 if (this.upgraded) this.setTexture('tree');
@@ -248,7 +248,7 @@ export class Hex extends Phaser.GameObjects.Image {
 
     update(time: number, delta: number) {
         if (this.propeller.visible) {
-            let speed = (this.hasHill && this.counted) ? 2 : this.counted ? 1 : 0.1;
+            let speed = (this.hasHill && this.counted) ? 2.2 : this.counted ? 1 : 0.1;
             this.propeller.setAngle(this.propeller.angle + speed*0.1*delta)
         }
     }
@@ -470,13 +470,13 @@ export class HexGrid extends Phaser.GameObjects.Group {
                     if (this.grid.has(r-1, c) && this.grid.get(r-1, c).hexType !== 5) h.nwEdge.setAlpha(0);
                     else h.nwEdge.setAlpha(1);
 
-                    if (this.grid.has(r, c-1) && (this.grid.get(r, c-1).hexType === h.hexType || (h.hexType === 4 && this.grid.get(r, c-1).hexType === 3))) h.wEdge.setAlpha(0.4);
+                    if (this.grid.has(r, c-1) && (this.grid.get(r, c-1).hexType === h.hexType || (h.hexType === 4 && this.grid.get(r, c-1).hexType === 3) || (h.hexType === 3 && this.grid.get(r, c-1).hexType === 4))) h.wEdge.setAlpha(0.4);
                     else h.wEdge.setAlpha(1);
 
-                    if (this.grid.has(r+1, c-1) && this.grid.get(r+1, c-1).hexType === h.hexType) h.swEdge.setAlpha(0.4);
+                    if (this.grid.has(r+1, c-1) && (this.grid.get(r+1, c-1).hexType === h.hexType || (h.hexType === 4 && this.grid.get(r+1, c-1).hexType === 3) || (h.hexType === 3 && this.grid.get(r+1, c-1).hexType === 4))) h.swEdge.setAlpha(0.4);
                     else h.swEdge.setAlpha(1);
 
-                    if (this.grid.has(r+1, c) && this.grid.get(r+1, c).hexType === h.hexType) h.seEdge.setAlpha(0.4);
+                    if (this.grid.has(r+1, c) && (this.grid.get(r+1, c).hexType === h.hexType || (h.hexType === 4 && this.grid.get(r+1, c).hexType === 3) || (h.hexType === 3 && this.grid.get(r+1, c).hexType === 4))) h.seEdge.setAlpha(0.4);
                     else h.seEdge.setAlpha(1);
                 }
             }

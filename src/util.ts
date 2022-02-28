@@ -51,11 +51,10 @@ export class Button extends Phaser.GameObjects.Sprite {
     }
 
     onOver() {
-        this.setFrame(1);
+        this.setScale(1.075);
     }
 
     onOut() {
-        this.setFrame(0);
         this.down = false;
         this.setScale(1);
     }
@@ -70,7 +69,6 @@ export class Button extends Phaser.GameObjects.Sprite {
     onDown() {
         this.setScale(0.9);
         this.down = true;
-        this.setFrame(1);
     }
 }
 
