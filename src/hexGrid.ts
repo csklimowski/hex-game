@@ -292,7 +292,7 @@ export class Hex extends Phaser.GameObjects.Image {
                 this.setTexture('center');
             } else if (this.hexType === 5) {
                 if (this.upgraded) this.setTexture('port');
-                else (this.setTexture('port-bw'));
+                else this.setTexture('port-bw');
             }
         }
     }

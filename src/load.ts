@@ -7,8 +7,6 @@ export class LoadScene extends Phaser.Scene {
     }
 
     preload() {
-        // this.add.text(20, 20, 'Loading...');
-
         this.load.image('white', 'img/white.png');
 
         this.load.image('edge-e', 'img/edge-e.png');
@@ -67,6 +65,6 @@ export class LoadScene extends Phaser.Scene {
     }
 
     create() {
-        this.scene.start('main');
+        this.scene.start('menu');
     }
 }

@@ -1,5 +1,5 @@
 import { MainScene } from './main';
-import { MenuScene } from './main';
+import { MenuScene } from './menu';
 import { LoadScene } from './load';
 
 new Phaser.Game({
