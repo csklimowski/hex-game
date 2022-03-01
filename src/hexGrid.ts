@@ -64,7 +64,14 @@ export const rotations = {
     'a': ['a', 'v'],
     'v': ['a', 'v'],
     '\\': ['\\', '-', '/'],
-    'c': ['c', 'r', 'n', 'd', 'j', 'l']
+    '-': ['\\', '-', '/'],
+    '/': ['\\', '-', '/'],
+    'c': ['c', 'r', 'n', 'd', 'j', 'l'],
+    'r': ['c', 'r', 'n', 'd', 'j', 'l'],
+    'n': ['c', 'r', 'n', 'd', 'j', 'l'],
+    'd': ['c', 'r', 'n', 'd', 'j', 'l'],
+    'j': ['c', 'r', 'n', 'd', 'j', 'l'],
+    'l': ['c', 'r', 'n', 'd', 'j', 'l']
 };
 
 export class Hex extends Phaser.GameObjects.Image {
@@ -76,6 +83,9 @@ export class Hex extends Phaser.GameObjects.Image {
 
     counted: boolean;
     upgraded: boolean;
+
+    puffer: Phaser.GameObjects.Particles.ParticleEmitter;
+    puffManager: Phaser.GameObjects.Particles.ParticleEmitterManager;
     // streets and ports are counted when they're connected to the center
     // parks are counted in batches of 3, check when new ones are added to the group
     // windmills are counted when placed; and can be uncounted if a new one is placed
@@ -89,7 +99,7 @@ export class Hex extends Phaser.GameObjects.Image {
     edges: Phaser.GameObjects.Group;
     propeller: Phaser.GameObjects.Image;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, row: number, col: number) {
+    constructor(scene: Phaser.Scene, x: number, y: number, row: number, col: number, particleManager?: Phaser.GameObjects.Particles.ParticleEmitterManager) {
         super(scene, x, y, 'empty');
         
         this.setScale(0.5);
@@ -123,6 +133,35 @@ export class Hex extends Phaser.GameObjects.Image {
         this.propeller.setScale(0.5);
         this.propeller.setVisible(false);
         this.propeller.setDepth(2);
+
+        
+        this.puffManager = particleManager;
+        if (particleManager) {
+            this.puffTint(0xffffff);
+        }
+    }
+
+    puffTint(tint: number) {
+        if (this.puffer) this.puffer.killAll();
+        this.puffer = this.puffManager.createEmitter({
+            lifespan: 1000,
+            speed: { min: 3, max: 20 },
+            angle: { min: 0, max: 360 },
+            scale: 2,
+            quantity: 20,
+            alpha: { start: 1, end: 0},
+            on: false,
+            tint: tint,
+            emitZone: {
+                type: 'random',
+                source: new Phaser.Geom.Rectangle(-25, -25, 50, 50),
+                quantity: 20
+            },
+        });
+    }
+
+    puff() {
+        this.puffer.emitParticleAt(this.x, this.y, 10); 
     }
 
     setX(x: number) {
@@ -176,6 +215,18 @@ export class Hex extends Phaser.GameObjects.Image {
             }
         } else {
             this.propeller.setVisible(false);
+        }
+
+        if (this.puffManager) {
+            if (hexType === 1) {
+                this.puffTint(0xffffff);
+            } else if (hexType === 2) {
+                this.puffTint(0x408A0F);
+            } else if (hexType === 3) {
+                this.puffTint(0xAE482C);
+            } else if (hexType === 5) {
+                this.puffTint(0x3B80A6);
+            }
         }
 
         if (hexType === 5) {
@@ -357,6 +408,7 @@ export class HexGrid extends Phaser.GameObjects.Group {
     scoreText: Phaser.GameObjects.BitmapText;
     score: number;
     scoreQueue: Queue<ScorePopper>
+    puffManager: Phaser.GameObjects.Particles.ParticleEmitterManager;
 
     onScoreUpdate: (score: number) => void;
 
@@ -378,6 +430,9 @@ export class HexGrid extends Phaser.GameObjects.Group {
         this.x = x || 0;
         this.y = y || 0;
 
+        this.puffManager = scene.add.particles('particle');
+        this.puffManager.setDepth(1);
+
         this.scoreQueue = new Queue<ScorePopper>();
         
         for (let r = 0; r < size + size + 1; r++) {
@@ -385,7 +440,7 @@ export class HexGrid extends Phaser.GameObjects.Group {
                 if (c + r < size || c + r > size*3) {
                     continue;
                 } else {
-                    let h = new Hex(scene, getX(r, c) + this.x, getY(r, c) + this.y, r, c);
+                    let h = new Hex(scene, getX(r, c) + this.x, getY(r, c) + this.y, r, c, this.puffManager);
                     this.add(h);
                     this.grid.set(r, c, h);
                     this.hexes.push(h);
@@ -483,23 +538,36 @@ export class HexGrid extends Phaser.GameObjects.Group {
         }
     }
 
-    canPlaceShape(shape: string) {
-        
+    sinkBlanks() {
+        for (let h of this.hexes) {
+            if (h.hexType === 0 || (h.hexType === 5 && !h.counted))  {
+                h.puffTint(0x3B80A6);
+                h.puff();
+                h.setVisible(false);
+                h.edges.setVisible(false);
+                this.grid.delete(h.row, h.col);
+            }
+        }
+        this.updateEdges();
+    }
 
+    canPlaceShape(shape: string) {
         for (let hex of this.hexes) {
             if (hex.hexType === 0) {
                 for (let rotation of rotations[shape]) {
+                    let canPlaceHere = true;
                     for (let offsets of shapes[rotation]) {
                         let r = hex.row + offsets.ro;
                         let c = hex.col + offsets.co;
                         if (!(this.grid.has(r, c) && this.grid.get(r, c).hexType === 0)) {
-                            return false;
+                            canPlaceHere = false;
                         }
                     }
+                    if (canPlaceHere) return true;
                 }
             }
         }
-        return true;
+        return false;
     }
 
     neighbors(row: number, col: number) {
@@ -514,6 +582,12 @@ export class HexGrid extends Phaser.GameObjects.Group {
     }
 
     updateTriPreview(x: number, y: number, trihex: Trihex) {
+        if (trihex.hexes[0] === 0) {
+            this.triPreviews[0].setVisible(false);
+            this.triPreviews[1].setVisible(false);
+            this.triPreviews[2].setVisible(false);
+            return;
+        }
         if (trihex.shape === 'a') {
             y -= HEX_HEIGHT/2;
         }
@@ -593,7 +667,14 @@ export class HexGrid extends Phaser.GameObjects.Group {
 
             // calculate scores
             for (let i = 0; i < 3; i++) {
-                this.getPointsFor(hexes[i]);
+                if (hexes[i].hexType === 1) {
+                    this.getPointsFor(hexes[i]);
+                }
+            }
+            for (let i = 0; i < 3; i++) {
+                if (hexes[i].hexType !== 1) {
+                    this.getPointsFor(hexes[i]);
+                }
             }
 
             this.updateEdges();
@@ -658,11 +739,8 @@ export class HexGrid extends Phaser.GameObjects.Group {
             while (uncountedParks.length >= 3) {
                 let newParks = uncountedParks.splice(0, 3);
                 newParks[0].counted = true;
-                newParks[0].setTexture('tree');
                 newParks[1].counted = true;
-                newParks[1].setTexture('tree');
                 newParks[2].counted = true;
-                newParks[2].setTexture('tree');
                 this.scoreQueue.enq(new ScorePopper(this.scene, newParks, 5));
             }
         } else if (hex.hexType === 3) {
@@ -692,12 +770,16 @@ export class HexGrid extends Phaser.GameObjects.Group {
         if (this.scoreQueue.size() > 0) {
             let p = this.scoreQueue.deq();
             p.pop();
+            
             this.score += p.points;
             if (this.onScoreUpdate) {
                 this.onScoreUpdate(this.score);
             }
             if (p.hexes) {
-                p.hexes[0].upgrade();
+                for (let h of p.hexes) {
+                    h.upgrade();
+                    if (p.points > 0) h.puff();
+                }
             }
         }
     }
@@ -741,6 +823,7 @@ export class ScorePopper extends Phaser.GameObjects.BitmapText {
         this.setScale(Math.max(1, 0.9 + 0.1*points));
         this.setAlpha(0);
         this.setOrigin(0.5);
+        this.setDepth(5);
         this.hexes = hexes;
     }
 

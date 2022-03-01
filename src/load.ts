@@ -7,7 +7,7 @@ export class LoadScene extends Phaser.Scene {
     }
 
     preload() {
-        this.add.text(20, 20, 'Loading...');
+        // this.add.text(20, 20, 'Loading...');
 
         this.load.image('white', 'img/white.png');
 
@@ -49,6 +49,9 @@ export class LoadScene extends Phaser.Scene {
         this.load.spritesheet('rotate', 'img/rotate.png', {frameWidth: 250, frameHeight: 250});
         this.load.image('page', 'img/page.png');
         this.load.image('waves', 'img/waves.png');
+        this.load.image('waves2', 'img/waves2.png');
+
+        this.load.image('particle', 'img/particle.png');
 
         this.load.image('a-shape', 'img/a-shape.png');
         this.load.image('c-shape', 'img/c-shape.png');

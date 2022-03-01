@@ -10,12 +10,15 @@ export class MainScene extends Phaser.Scene {
     nextNextTrihex: Trihex;
     trihexDeck: Trihex[];
     bigPreviewTrihex: Hex[];
+    bigPreviewContainer: Phaser.GameObjects.Container;
     deckCounterImage: Phaser.GameObjects.Image;
     deckCounterText: Phaser.GameObjects.BitmapText;
     rotateLeftButton: Button;
     rotateRightButton: Button;
 
     scoreText: Phaser.GameObjects.BitmapText;
+    waves: Phaser.GameObjects.Image;
+    waves2: Phaser.GameObjects.Image;
 
     constructor() {
         super('main');
@@ -23,7 +26,8 @@ export class MainScene extends Phaser.Scene {
 
     create() {
 
-        this.add.image(730, 340, 'waves').setScale(0.5);
+        this.waves = this.add.image(640, 360, 'waves');
+        this.waves2 = this.add.image(640, 360, 'waves2');
 
         this.scoreText = this.add.bitmapText(940, 30, 'font', 'Score: 0', 70);
         this.scoreText.setDepth(4);
@@ -51,7 +55,9 @@ export class MainScene extends Phaser.Scene {
         this.rotateRightButton = new Button(this, 1175, 180, 'rotate', this.rotateRight.bind(this));
         this.rotateRightButton.setDepth(3.5);
         
-        this.pickNextTrihex();
+        
+        this.bigPreviewContainer = this.add.container(1050, 325);
+        this.bigPreviewContainer.setDepth(4);
 
         this.bigPreviewTrihex = [];
         for (let i = 0; i < 3; i++) {
@@ -59,18 +65,21 @@ export class MainScene extends Phaser.Scene {
             h.embiggen();
             h.setDepth(4);
             this.bigPreviewTrihex.push(h);
+            this.bigPreviewContainer.add(h);
+            this.bigPreviewContainer.add(h.edges.getChildren());
+            this.bigPreviewContainer.add(h.propeller);
         }
-        this.updateBigTrihex();
+
+        this.pickNextTrihex();
 
 
 
-
-        let foreground = this.add.image(720, 360, 'page');
+        let foreground = this.add.image(1000, 360, 'page');
         foreground.setDepth(3);
         this.tweens.add({
             targets: foreground,
             props: { x: 2080 },
-            duration: 1000
+            duration: 800
         })
 
 
@@ -113,10 +122,11 @@ export class MainScene extends Phaser.Scene {
             let row = shapes[this.nextTrihex.shape][i].ro;
             let col = shapes[this.nextTrihex.shape][i].co;
 
-            this.bigPreviewTrihex[i].setX(1050 + HEX_WIDTH*1.5*(col + 0.5*row))
-            this.bigPreviewTrihex[i].setY(325 + HEX_HEIGHT*1.125*row)
-
+            this.bigPreviewTrihex[i].setX(HEX_WIDTH*1.5*(col + 0.5*row))
+            this.bigPreviewTrihex[i].setY(HEX_HEIGHT*1.125*row)
+            
             this.bigPreviewTrihex[i].setType(this.nextTrihex.hexes[i]);
+            if (this.nextTrihex.hexes[i] === 0) this.bigPreviewTrihex[i].setVisible(false);
         }
     }
 
@@ -180,19 +190,42 @@ export class MainScene extends Phaser.Scene {
                 this.deckCounterImage.setVisible(false);
                 this.deckCounterText.setText('');
             }
-            
+            this.updateBigTrihex();
+
+            this.bigPreviewContainer.setPosition(this.deckCounterImage.x, this.deckCounterImage.y);
+            this.bigPreviewContainer.setScale(0.2);
+
+            this.tweens.add({
+                targets: this.bigPreviewContainer,
+                props: {
+                    x: 1050,
+                    y: 325,
+                    scale: 1
+                },
+                duration: 400
+            })
+
         } else {
-            
+            this.bigPreviewContainer.setVisible(false);
             this.nextTrihex = new Trihex(0, 0, 0, 'a');
         }
+    }
+
+    endGame() {
+        this.grid.sinkBlanks();
+        
     }
 
     onPointerDown(event) {
         if (this.grid.placeTrihex(event.worldX, event.worldY, this.nextTrihex)) {
             this.pickNextTrihex();
-            this.updateBigTrihex();
-            if (!this.grid.canPlaceShape(this.nextTrihex.shape)) {
-
+            
+            if (this.nextTrihex.hexes[0] === 0 || !this.grid.canPlaceShape(this.nextTrihex.shape)) {
+                this.time.addEvent({
+                    callback: this.endGame,
+                    callbackScope: this,
+                    delay: 1000
+                });
             }
         }
     }
@@ -217,6 +250,9 @@ export class MainScene extends Phaser.Scene {
         for (let hex of this.grid.hexes) {
             hex.update(time, delta);
         }
+
+        this.waves.setX(640 + Math.sin(time*0.001)*10);
+        this.waves2.setX(640 - Math.sin(time*0.001)*10);
     }
 }
 
