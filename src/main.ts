@@ -282,52 +282,53 @@ export class MainScene extends Phaser.Scene {
             // S rank
         }
         
-        let gameOverText = this.add.bitmapText(1300, 100, 'font', message1, 70);
+        let gameOverText = this.add.bitmapText(1400, 100, 'font', message1, 70);
         gameOverText.setOrigin(0.5);
         gameOverText.setDepth(4);
 
-        let rankText = this.add.bitmapText(1300, 340, 'font', rank, 60);
+        let rankText = this.add.bitmapText(1400, 340, 'font', rank, 60);
         rankText.setDepth(4);
 
-        let message2Text = this.add.bitmapText(1300, 400, 'font', message2, 40);
+        let message2Text = this.add.bitmapText(1400, 400, 'font', message2, 40);
         message2Text.setDepth(4);
 
-        let playAgainButton = new Button(this, 1300, 600, 'play-again-button', this.playAgain.bind(this));
+        let playAgainButton = new Button(this, 1400, 600, 'play-again-button', this.playAgain.bind(this));
         playAgainButton.setDepth(4);
 
         this.tweens.add({
             targets: gameOverText,
             props: { x: 1040 },
-            delay: 100,
-            duration: 100
+            delay: 300,
+            duration: 300,
+            ease: Phaser.Math.Easing.Quadratic.Out
+            
         });
 
         this.tweens.add({
             targets: rankText,
             props: { x: 960 },
-            delay: 100,
-            duration: 100
+            delay: 700,
+            duration: 300,
+            ease: Phaser.Math.Easing.Quadratic.Out
+            
         });
 
         this.tweens.add({
             targets: message2Text,
             props: { x: 865 },
-            delay: 100,
-            duration: 100
-        });
-
-        this.tweens.add({
-            targets: message2Text,
-            props: { x: 865 },
-            delay: 100,
-            duration: 100
+            delay: 700,
+            duration: 300,
+            ease: Phaser.Math.Easing.Quadratic.Out
+            
         });
 
         this.tweens.add({
             targets: playAgainButton,
             props: { x: 1040 },
-            delay: 100,
-            duration: 100
+            delay: 1000,
+            duration: 300,
+            ease: Phaser.Math.Easing.Quadratic.Out
+            
         });
         
     }
