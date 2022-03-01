@@ -405,6 +405,8 @@ export class HexGrid extends Phaser.GameObjects.Group {
     preview: Phaser.GameObjects.Image;
     triPreviews: Phaser.GameObjects.Image[];
 
+    enabled: boolean;
+
     scoreText: Phaser.GameObjects.BitmapText;
     score: number;
     scoreQueue: Queue<ScorePopper>
@@ -419,6 +421,8 @@ export class HexGrid extends Phaser.GameObjects.Group {
 
     constructor(scene: Phaser.Scene, size: number, hills: number, x?: number, y?: number, onScoreUpdate?: (score: number) => void) {
         super(scene);
+
+        this.enabled = true;
 
         this.grid = new Matrix2D<Hex>();
         this.hexes = [];
@@ -581,13 +585,15 @@ export class HexGrid extends Phaser.GameObjects.Group {
         ]
     }
 
+    deactivate() {
+        this.enabled = false;
+        this.triPreviews[0].setVisible(false);
+        this.triPreviews[1].setVisible(false);
+        this.triPreviews[2].setVisible(false);
+    }
+
     updateTriPreview(x: number, y: number, trihex: Trihex) {
-        if (trihex.hexes[0] === 0) {
-            this.triPreviews[0].setVisible(false);
-            this.triPreviews[1].setVisible(false);
-            this.triPreviews[2].setVisible(false);
-            return;
-        }
+        if (!this.enabled) return;
         if (trihex.shape === 'a') {
             y -= HEX_HEIGHT/2;
         }
@@ -699,8 +705,8 @@ export class HexGrid extends Phaser.GameObjects.Group {
 
         while(queue.size() > 0) {
             let h = queue.deq();
-            visited.add(h);
-            connectedHexes.push(h);
+            if (!visited.has(h)) connectedHexes.push(h);
+            visited.add(h)
 
             for (let n of this.neighbors(h.row, h.col)) {
                 if (n && (n.hexType === h.hexType || (h.hexType === 3 && n.hexType === 5)) && !visited.has(n)) {
@@ -732,6 +738,7 @@ export class HexGrid extends Phaser.GameObjects.Group {
             }
         } else if (hex.hexType === 2) {
             let group = this.getConnected(hex);
+
             let uncountedParks = [];
             for (let park of group) {
                 if (!park.counted) uncountedParks.push(park);

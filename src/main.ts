@@ -16,6 +16,7 @@ export class MainScene extends Phaser.Scene {
     rotateLeftButton: Button;
     rotateRightButton: Button;
 
+    score: number;
     scoreText: Phaser.GameObjects.BitmapText;
     waves: Phaser.GameObjects.Image;
     waves2: Phaser.GameObjects.Image;
@@ -29,7 +30,8 @@ export class MainScene extends Phaser.Scene {
         this.waves = this.add.image(640, 360, 'waves');
         this.waves2 = this.add.image(640, 360, 'waves2');
 
-        this.scoreText = this.add.bitmapText(940, 30, 'font', 'Score: 0', 70);
+        this.score = 0;
+        this.scoreText = this.add.bitmapText(950, 30, 'font', '0 points', 60);
         this.scoreText.setDepth(4);
 
         // small = 4
@@ -42,10 +44,10 @@ export class MainScene extends Phaser.Scene {
         this.trihexDeck = this.createTrihexDeck(25, true);
         // this.trihexDeck = this.createTrihexDeck(16, false);
         
-        this.deckCounterImage = this.add.image(950, 620, 'a-shape');
+        this.deckCounterImage = this.add.image(1040, 620, 'a-shape');
         this.deckCounterImage.setDepth(3.5);
         this.deckCounterImage.setAlpha(0.5);
-        this.deckCounterText = this.add.bitmapText(950, 620, 'font', String(this.trihexDeck.length), 50, )
+        this.deckCounterText = this.add.bitmapText(1040, 620, 'font', String(this.trihexDeck.length), 50, )
         this.deckCounterText.setOrigin(0.5, 0.4);
         this.deckCounterText.setDepth(3.6);
 
@@ -93,7 +95,8 @@ export class MainScene extends Phaser.Scene {
     }
 
     onScoreUpdate(score: number) {
-        this.scoreText.setText("Score: " + String(score));
+        this.score = score;
+        this.scoreText.setText(String(score) + " points");
     }
 
     onMouseWheel(pointer, gameObjects, deltaX, deltaY, deltaZ) {
@@ -214,6 +217,123 @@ export class MainScene extends Phaser.Scene {
     endGame() {
         this.grid.sinkBlanks();
         
+
+        this.grid.deactivate();
+
+        this.tweens.add({
+            targets: [
+                this.bigPreviewContainer,
+                this.rotateLeftButton,
+                this.rotateRightButton,
+                this.deckCounterImage,
+                this.deckCounterText
+            ],
+            props: {
+                alpha: 0
+            },
+            duration: 300
+        });
+
+        this.tweens.add({
+            targets: this.scoreText,
+            props: {
+                y: 200
+            },
+            duration: 700,
+            ease: Phaser.Math.Easing.Quadratic.Out
+        });
+
+        
+        let rank, message1, message2;
+        if (this.score < 70) {
+            // E rank
+            rank = "Rank: E";
+            message1 = "Finished!";
+            message2 = "(Next rank at 70 points)";
+        } else if (this.score < 80) {
+            rank = "Rank: D";
+            message1 = "Not bad!";
+            message2 = "(Next rank at 80 points)";
+            // D rank
+        } else if (this.score < 90) {
+            rank = "Rank: C";
+            message1 = "Good job!";
+            message2 = "(Next rank at 90 points)";
+            // C rank
+        } else if (this.score < 100) {
+            rank = "Rank: B";
+            message1 = "Well done!";
+            message2 = "(Next rank at 100 points)";
+            // B rank
+        } else if (this.score < 110) {
+            rank = "Rank: A";
+            message1 = "Excellent!";
+            message2 = "(Next rank at 110 points)";
+            // A rank
+        } else if (this.score < 120) {
+            rank = "Rank: A+";
+            message1 = "Nearly flawless!";
+            message2 = "(Next rank at 120 points)";
+            // A+ rank
+        } else {
+            rank = "Rank: S";
+            message1 = "Incredible!!";
+            message2 = "(This is the highest rank)";
+            // S rank
+        }
+        
+        let gameOverText = this.add.bitmapText(1300, 100, 'font', message1, 70);
+        gameOverText.setOrigin(0.5);
+        gameOverText.setDepth(4);
+
+        let rankText = this.add.bitmapText(1300, 340, 'font', rank, 60);
+        rankText.setDepth(4);
+
+        let message2Text = this.add.bitmapText(1300, 400, 'font', message2, 40);
+        message2Text.setDepth(4);
+
+        let playAgainButton = new Button(this, 1300, 600, 'play-again-button', this.playAgain.bind(this));
+        playAgainButton.setDepth(4);
+
+        this.tweens.add({
+            targets: gameOverText,
+            props: { x: 1040 },
+            delay: 100,
+            duration: 100
+        });
+
+        this.tweens.add({
+            targets: rankText,
+            props: { x: 960 },
+            delay: 100,
+            duration: 100
+        });
+
+        this.tweens.add({
+            targets: message2Text,
+            props: { x: 865 },
+            delay: 100,
+            duration: 100
+        });
+
+        this.tweens.add({
+            targets: message2Text,
+            props: { x: 865 },
+            delay: 100,
+            duration: 100
+        });
+
+        this.tweens.add({
+            targets: playAgainButton,
+            props: { x: 1040 },
+            delay: 100,
+            duration: 100
+        });
+        
+    }
+
+    playAgain() {
+        this.scene.restart();
     }
 
     onPointerDown(event) {
@@ -286,6 +406,9 @@ export class MenuScene extends Phaser.Scene {
     }
 
     create() {
+
+
+        
         this.cameras.main.setBounds(0, 0, 2560, 720);
         this.menu = this.add.group();
 

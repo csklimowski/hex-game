@@ -60,12 +60,13 @@ export class LoadScene extends Phaser.Scene {
         this.load.spritesheet('tutorial-button', 'img/tutorial-button.png', {frameWidth: 811, frameHeight: 91})
 
         this.load.image('play-button', 'img/play-button.png');
+        this.load.image('play-again-button', 'img/play-again-button.png');
         this.load.image('how-to-play-button', 'img/how-to-play-button.png');
 
         this.load.bitmapFont('font', 'font/font.png', 'font/font.fnt');
     }
 
     create() {
-        this.scene.start('menu');
+        this.scene.start('main');
     }
 }
