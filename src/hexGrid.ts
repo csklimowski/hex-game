@@ -402,7 +402,6 @@ export class HexGrid extends Phaser.GameObjects.Group {
 
     grid: Matrix2D<Hex>;
     hexes: Hex[];
-    preview: Phaser.GameObjects.Image;
     triPreviews: Phaser.GameObjects.Image[];
 
     enabled: boolean;
@@ -490,19 +489,11 @@ export class HexGrid extends Phaser.GameObjects.Group {
         
         this.updateEdges();
 
-        this.preview = scene.add.image(0, 0, 'hex2');
-        this.preview.setScale(1);
-        this.preview.setAlpha(0.5);
-        this.preview.setVisible(false);
-
-
-
         this.triPreviews = [];
         for (let i = 0; i < 3; i++) {
-            let p = scene.add.image(0, 0, 'hex2');
+            let p = scene.add.image(-200, -200, 'white');
             p.setScale(0.5);
             p.setAlpha(0.5);
-            // p.setVisible(false);
             this.triPreviews.push(p);
         }
 
