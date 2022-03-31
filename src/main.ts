@@ -1,5 +1,5 @@
 import { HexGrid, Trihex, shapes, Hex, HEX_HEIGHT, HEX_WIDTH } from './hexGrid';
-import { Button, shuffle } from './util';
+import { Button, pick, shuffle } from './util';
 
 export class MainScene extends Phaser.Scene {
 
@@ -26,37 +26,30 @@ export class MainScene extends Phaser.Scene {
     }
 
     create() {
+        this.score = 0;
 
         this.waves = this.add.image(640, 360, 'waves');
         this.waves2 = this.add.image(640, 360, 'waves2');
-
-        this.score = 0;
-        this.scoreText = this.add.bitmapText(950, 30, 'font', '0 points', 60);
-        this.scoreText.setDepth(4);
-
-        // small = 4
-        // large = 5
-        this.grid = new HexGrid(this, 5, 8, 0, 0, this.onScoreUpdate.bind(this));
-        // this.grid = new HexGrid(this, 4, 5);
-
-        // small = 16
-        // large = 25
-        this.trihexDeck = this.createTrihexDeck(25, true);
-        // this.trihexDeck = this.createTrihexDeck(16, false);
         
-        this.deckCounterImage = this.add.image(1040, 620, 'a-shape');
-        this.deckCounterImage.setDepth(3.5);
-        this.deckCounterImage.setAlpha(0.5);
-        this.deckCounterText = this.add.bitmapText(1040, 620, 'font', String(this.trihexDeck.length), 60)
+        this.grid = new HexGrid(this, 5, 8, 0, 0, this.onScoreUpdate.bind(this));
+        this.trihexDeck = this.createTrihexDeck(25, true);
+
+        this.scoreText = this.add.bitmapText(150, 30, 'font', '0 points', 60);
+        this.scoreText.setDepth(4);
+        
+        this.rotateLeftButton = new Button(this, 125, 180, 'rotate', this.rotateLeft.bind(this));
+        this.rotateLeftButton.setDepth(3.5);
+        this.rotateLeftButton.setFlipX(true);
+        this.rotateRightButton = new Button(this, 375, 180, 'rotate', this.rotateRight.bind(this));
+        this.rotateRightButton.setDepth(3.5);
+        
+        this.deckCounterText = this.add.bitmapText(240, 620, 'font', String(this.trihexDeck.length), 60)
         this.deckCounterText.setOrigin(0.5, 0.45);
         this.deckCounterText.setDepth(3.6);
 
-        this.rotateLeftButton = new Button(this, 925, 180, 'rotate', this.rotateLeft.bind(this));
-        this.rotateLeftButton.setDepth(3.5);
-        this.rotateLeftButton.setFlipX(true);
-        this.rotateRightButton = new Button(this, 1175, 180, 'rotate', this.rotateRight.bind(this));
-        this.rotateRightButton.setDepth(3.5);
-        
+        this.deckCounterImage = this.add.image(240, 620, 'a-shape');
+        this.deckCounterImage.setDepth(3.5);
+        this.deckCounterImage.setAlpha(0.5);
         
         this.bigPreviewContainer = this.add.container(1050, 325);
         this.bigPreviewContainer.setDepth(4);
@@ -76,13 +69,38 @@ export class MainScene extends Phaser.Scene {
 
 
 
-        let foreground = this.add.image(1000, 360, 'page');
+        let foreground = this.add.image(1600, 360, 'page');
         foreground.setDepth(3);
+
         this.tweens.add({
             targets: foreground,
-            props: { x: 2080 },
-            duration: 800
-        })
+            props: { x: 2400 },
+            duration: 400
+        });
+
+        this.tweens.add({
+            targets: this.rotateLeftButton,
+            props: { x: this.rotateLeftButton.x + 800 },
+            duration: 400
+        });
+
+        this.tweens.add({
+            targets: this.rotateRightButton,
+            props: { x: this.rotateRightButton.x + 800 },
+            duration: 400
+        });
+
+        this.tweens.add({
+            targets: this.scoreText,
+            props: { x: this.scoreText.x + 800 },
+            duration: 400
+        });
+
+        this.tweens.add({
+            targets: [this.deckCounterText, this.deckCounterImage],
+            props: { x: this.deckCounterText.x + 800 },
+            duration: 400
+        });
 
 
 
@@ -125,8 +143,17 @@ export class MainScene extends Phaser.Scene {
             let row = shapes[this.nextTrihex.shape][i].ro;
             let col = shapes[this.nextTrihex.shape][i].co;
 
-            this.bigPreviewTrihex[i].setX(HEX_WIDTH*1.5*(col + 0.5*row))
-            this.bigPreviewTrihex[i].setY(HEX_HEIGHT*1.125*row)
+            if (this.nextTrihex.shape === 'a') {
+                this.bigPreviewTrihex[i].setX(HEX_WIDTH*1.5*(col + 0.5*row))
+                this.bigPreviewTrihex[i].setY(HEX_HEIGHT*1.125*(row));
+            } else if (this.nextTrihex.shape === 'v') {
+                this.bigPreviewTrihex[i].setX(HEX_WIDTH*1.5*(col - 0.5 + 0.5*row))
+                this.bigPreviewTrihex[i].setY(HEX_HEIGHT*1.125*(row));
+            } else {
+                this.bigPreviewTrihex[i].setX(HEX_WIDTH*1.5*(col + 0.5*row))
+                this.bigPreviewTrihex[i].setY(HEX_HEIGHT*1.125*row)
+            }
+
             
             this.bigPreviewTrihex[i].setType(this.nextTrihex.hexes[i]);
             if (this.nextTrihex.hexes[i] === 0) this.bigPreviewTrihex[i].setVisible(false);
@@ -138,11 +165,11 @@ export class MainScene extends Phaser.Scene {
         for (let i = 0; i < size; i++) {
             if (allShapes) {
                 if (i < size/3) {
-                    deck.push(new Trihex(0, 0, 0, 'c'));
+                    deck.push(new Trihex(0, 0, 0, pick(['a', 'v'])));
                 } else if (i < size/1.5) {
-                    deck.push(new Trihex(0, 0, 0, '/'));
+                    deck.push(new Trihex(0, 0, 0, pick(['/', '-', '\\'])));
                 } else {
-                    deck.push(new Trihex(0, 0, 0, 'a'));
+                    deck.push(new Trihex(0, 0, 0, pick(['c', 'r', 'n', 'd', 'j', 'l'])));
                 }
             } else {
                 deck.push(new Trihex(0, 0, 0, 'a'));
@@ -186,8 +213,16 @@ export class MainScene extends Phaser.Scene {
             if (this.trihexDeck.length > 0) {
                 this.deckCounterImage.setTexture({
                     'a': 'a-shape',
+                    'v': 'a-shape',
                     '/': 'slash-shape',
-                    'c': 'c-shape'
+                    '-': 'slash-shape',
+                    '\\': 'slash-shape',
+                    'c': 'c-shape',
+                    'r': 'c-shape',
+                    'n': 'c-shape',
+                    'd': 'c-shape',
+                    'j': 'c-shape',
+                    'l': 'c-shape'
                 }[this.trihexDeck[this.trihexDeck.length-1].shape])
             } else {
                 this.deckCounterImage.setVisible(false);
@@ -278,7 +313,7 @@ export class MainScene extends Phaser.Scene {
         } else {
             rank = "Rank: S";
             message1 = "Incredible!!";
-            message2 = "(This is the highest rank)";
+            message2 = "(This is the highest rank!)";
             // S rank
         }
         
@@ -352,15 +387,14 @@ export class MainScene extends Phaser.Scene {
     }
 
     onPointerMove(event) {
-        // this.grid.updatePreview(event.worldX, event.worldY, this.nextType);
         this.grid.updateTriPreview(event.worldX, event.worldY, this.nextTrihex);
     }
 
     onKeyDown(event) {
-        if (event.keyCode === 39) {
+        if (event.keyCode === 39 || event.keyCode === 68) {
             this.rotateRight();
         }
-        if (event.keyCode === 37) {
+        if (event.keyCode === 37 || event.keyCode === 65) {
             this.rotateLeft();
         }
     }

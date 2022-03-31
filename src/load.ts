@@ -1,9 +1,7 @@
 export class LoadScene extends Phaser.Scene {
 
     constructor() {
-        super({
-            key: 'load'
-        });
+        super('load');
     }
 
     preload() {

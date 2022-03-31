@@ -32,13 +32,10 @@ export class MenuScene extends Phaser.Scene {
     }
 
     create() {
-
-
-        
-        this.cameras.main.setBounds(0, 0, 2560, 720);
+        this.cameras.main.setBounds(-1280, 0, 3840, 720);
         this.menu = this.add.group();
 
-        this.background = this.add.image(720, 360, 'page');
+        this.background = this.add.image(360, 360, 'page');
 
         this.add.image(920, 360, 'blue');
 
@@ -114,9 +111,31 @@ export class MenuScene extends Phaser.Scene {
         grid.updateEdges();
 
         this.tutorialGrid = grid;
+
+        this.add.bitmapText(-1160, 30, 'font', '0 points', 60);
+        
+        let rotateLeftButton = new Button(this, -1185, 180, 'rotate', null);
+        rotateLeftButton.setFlipX(true);
+        let rotateRightButton = new Button(this, -935, 180, 'rotate', null);
+        
+        let deckCounterText = this.add.bitmapText(-1050, 620, 'font', '25', 60)
+        deckCounterText.setOrigin(0.5, 0.45);
+
+        let deckCounterImage = this.add.image(-950, 720, 'a-shape');
+        deckCounterImage.setAlpha(0.5);
     }
 
     play() {
+        this.cameras.main.pan(-1280, 0, 500, 'Linear', true, );
+
+        this.time.addEvent({
+            delay: 500,
+            callback: this.transition,
+            callbackScope: this
+        })
+    }
+
+    transition() {
         this.scene.start('main');
     }
 
@@ -133,7 +152,7 @@ export class MenuScene extends Phaser.Scene {
     nextTutorialPage() {
         this.tutorialPage += 1;
         if (this.tutorialPage >= 5) {
-            this.cameras.main.pan(0, 0, 1000, 'Power2');
+            this.cameras.main.pan(640, 0, 1000, 'Power2');
             this.tutorialGrid.grid.get(0, 6).setVisible(false);
             this.tutorialGrid.grid.get(3, 0).setVisible(false);
             this.tutorialGrid.grid.get(3, 6).setVisible(false);
