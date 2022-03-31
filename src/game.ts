@@ -11,7 +11,7 @@ new Phaser.Game({
         MenuScene,
         MainScene
     ],
-    backgroundColor: 0x90C7E5,
+    backgroundColor: 0xDED6B6,
     scale: {
         autoCenter: Phaser.Scale.CENTER_BOTH,
         mode: Phaser.Scale.FIT,

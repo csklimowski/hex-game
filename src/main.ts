@@ -26,6 +26,7 @@ export class MainScene extends Phaser.Scene {
     }
 
     create() {
+        this.add.rectangle(640, 360, 1280, 720, 0x90C7E5);
         this.score = 0;
 
         this.waves = this.add.image(640, 360, 'waves');

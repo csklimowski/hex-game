@@ -42,7 +42,7 @@ export class LoadScene extends Phaser.Scene {
 
         this.load.image('port-bw', 'img/port.png');
         this.load.image('port', 'img/port-color.png');
-        this.load.spritesheet('rotate', 'img/rotate.png', {frameWidth: 250, frameHeight: 250});
+        this.load.image('rotate', 'img/rotate.png');
         this.load.image('page', 'img/page.png');
         this.load.image('waves', 'img/waves.png');
         this.load.image('waves2', 'img/waves2.png');
