@@ -403,12 +403,12 @@ export class HexGrid extends Phaser.GameObjects.Group {
     grid: Matrix2D<Hex>;
     hexes: Hex[];
     triPreviews: Phaser.GameObjects.Image[];
-
     enabled: boolean;
 
     scoreText: Phaser.GameObjects.BitmapText;
     score: number;
     scoreQueue: Queue<ScorePopper>
+    onQueueEmpty: () => void;
     puffManager: Phaser.GameObjects.Particles.ParticleEmitterManager;
 
     onScoreUpdate: (score: number) => void;
@@ -543,6 +543,43 @@ export class HexGrid extends Phaser.GameObjects.Group {
                 this.grid.delete(h.row, h.col);
             }
         }
+
+        this.grid.get(0, this.size)?.setFrame(
+            (this.grid.has(1, this.size-1) ? 4 : 0) +
+            (this.grid.has(1, this.size) ? 2 : 0) +
+            (this.grid.has(0, this.size+1) ? 1 : 0)
+        );
+
+        this.grid.get(this.size, 0)?.setFrame(
+            (this.grid.has(this.size+1, 0) ? 4 : 0) +
+            (this.grid.has(this.size, 1) ? 2 : 0) +
+            (this.grid.has(this.size-1, 1) ? 1 : 0)
+        );
+
+        this.grid.get(0, this.size*2)?.setFrame(
+            (this.grid.has(0, this.size*2-1) ? 4 : 0) +
+            (this.grid.has(1, this.size*2-1) ? 2 : 0) +
+            (this.grid.has(1, this.size*2) ? 1 : 0)
+        );
+
+        this.grid.get(this.size, this.size*2)?.setFrame(
+            (this.grid.has(this.size-1, this.size*2) ? 4 : 0) +
+            (this.grid.has(this.size, this.size*2-1) ? 2 : 0) +
+            (this.grid.has(this.size+1, this.size*2-1) ? 1 : 0)
+        );
+
+        this.grid.get(this.size*2, 0)?.setFrame(
+            (this.grid.has(this.size*2, 1) ? 4 : 0) +
+            (this.grid.has(this.size*2-1, 1) ? 2 : 0) +
+            (this.grid.has(this.size*2-1, 0) ? 1 : 0)
+        );
+
+        this.grid.get(this.size*2, this.size)?.setFrame(
+            (this.grid.has(this.size*2-1, this.size+1) ? 4 : 0) +
+            (this.grid.has(this.size*2-1, this.size) ? 2 : 0) +
+            (this.grid.has(this.size*2, this.size-1) ? 1 : 0)
+        );
+
         this.updateEdges();
     }
 
@@ -779,6 +816,9 @@ export class HexGrid extends Phaser.GameObjects.Group {
                     if (p.points > 0) h.puff();
                 }
             }
+        } else if (this.onQueueEmpty) {
+            this.onQueueEmpty();
+            this.onQueueEmpty = null;
         }
     }
 }

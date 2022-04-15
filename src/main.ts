@@ -5,6 +5,7 @@ export class MainScene extends Phaser.Scene {
 
     grid: HexGrid;
 
+    foreground: Phaser.GameObjects.Image;
     nextType: number;
     nextTrihex: Trihex;
     nextNextTrihex: Trihex;
@@ -15,11 +16,15 @@ export class MainScene extends Phaser.Scene {
     deckCounterText: Phaser.GameObjects.BitmapText;
     rotateLeftButton: Button;
     rotateRightButton: Button;
-
     score: number;
     scoreText: Phaser.GameObjects.BitmapText;
     waves: Phaser.GameObjects.Image;
     waves2: Phaser.GameObjects.Image;
+
+    gameOverText: Phaser.GameObjects.BitmapText;
+    rankText: Phaser.GameObjects.BitmapText;
+    nextRankText: Phaser.GameObjects.BitmapText;
+    playAgainButton: Button;
 
     constructor() {
         super('main');
@@ -70,11 +75,11 @@ export class MainScene extends Phaser.Scene {
 
 
 
-        let foreground = this.add.image(1600, 360, 'page');
-        foreground.setDepth(3);
+        this.foreground = this.add.image(1600, 360, 'page');
+        this.foreground.setDepth(3);
 
         this.tweens.add({
-            targets: foreground,
+            targets: this.foreground,
             props: { x: 2400 },
             duration: 400
         });
@@ -250,6 +255,10 @@ export class MainScene extends Phaser.Scene {
         }
     }
 
+    waitForFinalScore() {
+        this.grid.onQueueEmpty = this.endGame.bind(this);
+    }
+
     endGame() {
         this.grid.sinkBlanks();
         
@@ -318,21 +327,21 @@ export class MainScene extends Phaser.Scene {
             // S rank
         }
         
-        let gameOverText = this.add.bitmapText(1400, 100, 'font', message1, 70);
-        gameOverText.setOrigin(0.5);
-        gameOverText.setDepth(4);
+        this.gameOverText = this.add.bitmapText(1400, 100, 'font', message1, 70);
+        this.gameOverText.setOrigin(0.5);
+        this.gameOverText.setDepth(4);
 
-        let rankText = this.add.bitmapText(1400, 340, 'font', rank, 60);
-        rankText.setDepth(4);
+        this.rankText = this.add.bitmapText(1400, 340, 'font', rank, 60);
+        this.rankText.setDepth(4);
 
-        let message2Text = this.add.bitmapText(1400, 400, 'font', message2, 40);
-        message2Text.setDepth(4);
+        this.nextRankText = this.add.bitmapText(1400, 400, 'font', message2, 40);
+        this.nextRankText.setDepth(4);
 
-        let playAgainButton = new Button(this, 1400, 600, 'play-again-button', this.playAgain.bind(this));
-        playAgainButton.setDepth(4);
+        this.playAgainButton = new Button(this, 1400, 600, 'play-again-button', this.playAgain.bind(this));
+        this.playAgainButton.setDepth(4);
 
         this.tweens.add({
-            targets: gameOverText,
+            targets: this.gameOverText,
             props: { x: 1040 },
             delay: 300,
             duration: 300,
@@ -341,7 +350,7 @@ export class MainScene extends Phaser.Scene {
         });
 
         this.tweens.add({
-            targets: rankText,
+            targets: this.rankText,
             props: { x: 960 },
             delay: 700,
             duration: 300,
@@ -350,7 +359,7 @@ export class MainScene extends Phaser.Scene {
         });
 
         this.tweens.add({
-            targets: message2Text,
+            targets: this.nextRankText,
             props: { x: 865 },
             delay: 700,
             duration: 300,
@@ -359,18 +368,34 @@ export class MainScene extends Phaser.Scene {
         });
 
         this.tweens.add({
-            targets: playAgainButton,
+            targets: this.playAgainButton,
             props: { x: 1040 },
             delay: 1000,
             duration: 300,
             ease: Phaser.Math.Easing.Quadratic.Out
-            
         });
         
     }
 
     playAgain() {
-        this.scene.restart();
+
+        this.gameOverText.setVisible(false);
+        this.nextRankText.setVisible(false);
+        this.rankText.setVisible(false);
+        this.playAgainButton.setVisible(false);
+        this.scoreText.setVisible(false);
+
+        this.tweens.add({
+            targets: this.foreground,
+            props: { x: 1600 },
+            duration: 400
+        });
+
+        this.time.addEvent({
+            callback: this.scene.restart,
+            callbackScope: this.scene,
+            delay: 500
+        });
     }
 
     onPointerDown(event) {
@@ -379,7 +404,7 @@ export class MainScene extends Phaser.Scene {
             
             if (this.nextTrihex.hexes[0] === 0 || !this.grid.canPlaceShape(this.nextTrihex.shape)) {
                 this.time.addEvent({
-                    callback: this.endGame,
+                    callback: this.waitForFinalScore,
                     callbackScope: this,
                     delay: 1000
                 });
