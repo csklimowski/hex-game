@@ -108,13 +108,10 @@ export class MainScene extends Phaser.Scene {
             duration: 400
         });
 
-
-
         this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
         this.input.on(Phaser.Input.Events.POINTER_MOVE, this.onPointerMove, this);
         this.input.keyboard.on(Phaser.Input.Keyboard.Events.ANY_KEY_DOWN, this.onKeyDown, this);
 
-        // this.input.mouse.on(Phaser.Input.MOUSE_WHEEL, this.onMouseWheel, this);
         this.input.on('wheel', this.onMouseWheel, this);
     }
 
@@ -261,9 +258,6 @@ export class MainScene extends Phaser.Scene {
 
     endGame() {
         this.grid.sinkBlanks();
-        
-
-        this.grid.deactivate();
 
         this.tweens.add({
             targets: [
@@ -296,35 +290,35 @@ export class MainScene extends Phaser.Scene {
             message1 = "Finished!";
             message2 = "(Next rank at 70 points)";
         } else if (this.score < 80) {
+            // D rank
             rank = "Rank: D";
             message1 = "Not bad!";
             message2 = "(Next rank at 80 points)";
-            // D rank
         } else if (this.score < 90) {
+            // C rank
             rank = "Rank: C";
             message1 = "Good job!";
             message2 = "(Next rank at 90 points)";
-            // C rank
         } else if (this.score < 100) {
+            // B rank
             rank = "Rank: B";
             message1 = "Well done!";
             message2 = "(Next rank at 100 points)";
-            // B rank
         } else if (this.score < 110) {
+            // A rank
             rank = "Rank: A";
             message1 = "Excellent!";
             message2 = "(Next rank at 110 points)";
-            // A rank
         } else if (this.score < 120) {
+            // A+ rank
             rank = "Rank: A+";
             message1 = "Nearly flawless!";
             message2 = "(Next rank at 120 points)";
-            // A+ rank
         } else {
+            // S rank
             rank = "Rank: S";
             message1 = "Incredible!!";
             message2 = "(This is the highest rank!)";
-            // S rank
         }
         
         this.gameOverText = this.add.bitmapText(1400, 100, 'font', message1, 70);
@@ -346,7 +340,6 @@ export class MainScene extends Phaser.Scene {
             delay: 300,
             duration: 300,
             ease: Phaser.Math.Easing.Quadratic.Out
-            
         });
 
         this.tweens.add({
@@ -355,7 +348,6 @@ export class MainScene extends Phaser.Scene {
             delay: 700,
             duration: 300,
             ease: Phaser.Math.Easing.Quadratic.Out
-            
         });
 
         this.tweens.add({
@@ -364,7 +356,6 @@ export class MainScene extends Phaser.Scene {
             delay: 700,
             duration: 300,
             ease: Phaser.Math.Easing.Quadratic.Out
-            
         });
 
         this.tweens.add({
@@ -408,6 +399,7 @@ export class MainScene extends Phaser.Scene {
                     callbackScope: this,
                     delay: 1000
                 });
+                this.grid.deactivate();
             }
         }
     }

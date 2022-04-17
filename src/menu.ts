@@ -40,11 +40,9 @@ export class MenuScene extends Phaser.Scene {
         this.add.image(920, 360, 'blue');
 
         let title = this.add.bitmapText(50, 100, 'font', 'SIX-SIDED STREETS', 70);
-        // title.setOrigin(0.5);
         this.menu.add(title);
 
         let byline = this.add.bitmapText(50, 190, 'font', 'a tile-laying game by Chris Klimowski', 40);
-        // byline.setOrigin(0.5);
         this.menu.add(byline);
 
         let playButton = new Button(this, 300, 400, 'play-button', this.play.bind(this));
@@ -123,6 +121,17 @@ export class MenuScene extends Phaser.Scene {
 
         let deckCounterImage = this.add.image(-950, 720, 'a-shape');
         deckCounterImage.setAlpha(0.5);
+
+        let ambience = this.sound.add('ambience', {
+            loop: true,
+            volume: 0
+        });
+        ambience.play();
+        this.add.tween({
+            targets: ambience,
+            props: { volume: 0.8 },
+            duration: 1000
+        });
     }
 
     play() {

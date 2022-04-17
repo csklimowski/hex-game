@@ -260,8 +260,8 @@ export class Hex extends Phaser.GameObjects.Image {
             if (this.hexType === 0) {
                 this.setTexture('empty');
             } else if (this.hexType === 1) {
-                if (this.hasHill) this.setTexture('windmill-bw');
-                else this.setTexture('windmill-hill-bw');
+                if (this.hasHill) this.setTexture('windmill-hill-bw');
+                else this.setTexture('windmill-bw');
                 this.propeller.setVisible(false);
             } else if (this.hexType === 2) {
                 if (this.upgraded) this.setTexture('tree-bw');
@@ -534,6 +534,9 @@ export class HexGrid extends Phaser.GameObjects.Group {
     }
 
     sinkBlanks() {
+
+        this.scene.sound.play('splash', {volume: 0.75});
+
         for (let h of this.hexes) {
             if (h.hexType === 0 || (h.hexType === 5 && !h.counted))  {
                 h.puffTint(0x3B80A6);
@@ -695,6 +698,8 @@ export class HexGrid extends Phaser.GameObjects.Group {
             hexes[1] && hexes[1].hexType === 0 &&
             hexes[2] && hexes[2].hexType === 0) {
 
+            this.scene.sound.play('place');
+
             for (let i = 0; i < 3; i++) {
                 hexes[i].setType(trihex.hexes[i])
             }
@@ -814,6 +819,25 @@ export class HexGrid extends Phaser.GameObjects.Group {
                 for (let h of p.hexes) {
                     h.upgrade();
                     if (p.points > 0) h.puff();
+                }
+
+                if (p.points > 0) {
+                    if (p.hexes[0].hexType === 3) {
+                        this.scene.sound.play('pop', {volume: 0.5});
+                    }
+                    if (p.hexes[0].hexType === 2) {
+                        this.scene.sound.play('tree', {volume: 0.5});
+                    }
+                    if (p.hexes[0].hexType === 1) {
+                        if (p.hexes[0].hasHill) {
+                            this.scene.sound.play('windmill-hill', {volume: 0.6});
+                        } else {
+                            this.scene.sound.play('windmill', {volume: 0.6});
+                        }
+                    }
+                    if (p.hexes[0].hexType === 5) {
+                        this.scene.sound.play('port', {volume: 0.9});
+                    }
                 }
             }
         } else if (this.onQueueEmpty) {

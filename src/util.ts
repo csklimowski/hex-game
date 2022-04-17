@@ -60,6 +60,7 @@ export class Button extends Phaser.GameObjects.Sprite {
     }
 
     onUp() {
+        this.scene.sound.play('click', {volume: 0.9});
         this.setScale(1);
         if (this.down) {
             this.onDownCallback();
@@ -67,6 +68,7 @@ export class Button extends Phaser.GameObjects.Sprite {
     }
 
     onDown() {
+        this.scene.sound.play('click', {volume: 0.4});
         this.setScale(0.9);
         this.down = true;
     }
