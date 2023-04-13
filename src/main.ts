@@ -16,15 +16,25 @@ export class MainScene extends Phaser.Scene {
     deckCounterText: Phaser.GameObjects.BitmapText;
     rotateLeftButton: Button;
     rotateRightButton: Button;
+    menuButton: Button;
     score: number;
+    scoreBreakdown: number[];
     scoreText: Phaser.GameObjects.BitmapText;
     waves: Phaser.GameObjects.Image;
     waves2: Phaser.GameObjects.Image;
+
+    pointerDown: boolean;
+    previewX: number;
+    previewY: number;
 
     gameOverText: Phaser.GameObjects.BitmapText;
     rankText: Phaser.GameObjects.BitmapText;
     nextRankText: Phaser.GameObjects.BitmapText;
     playAgainButton: Button;
+
+    breakdownContainer: Phaser.GameObjects.Container;
+    breakdownHexes: Hex[];
+    breakdownTexts: Phaser.GameObjects.BitmapText[];
 
     constructor() {
         super('main');
@@ -32,12 +42,16 @@ export class MainScene extends Phaser.Scene {
 
     create() {
         this.add.rectangle(640, 360, 1280, 720, 0x90C7E5);
+
         this.score = 0;
+        this.scoreBreakdown = [0, 0, 0, 0, 0, 0];
+
+        this.pointerDown = false;
 
         this.waves = this.add.image(640, 360, 'waves');
         this.waves2 = this.add.image(640, 360, 'waves2');
         
-        this.grid = new HexGrid(this, 5, 8, 0, 0, this.onScoreUpdate.bind(this));
+        this.grid = new HexGrid(this, 5, 8, 0, 0, this.onNewPoints.bind(this));
         this.trihexDeck = this.createTrihexDeck(25, true);
 
         this.scoreText = this.add.bitmapText(150, 30, 'font', '0 points', 60);
@@ -110,14 +124,16 @@ export class MainScene extends Phaser.Scene {
 
         this.input.on(Phaser.Input.Events.POINTER_DOWN, this.onPointerDown, this);
         this.input.on(Phaser.Input.Events.POINTER_MOVE, this.onPointerMove, this);
+        this.input.on(Phaser.Input.Events.POINTER_UP, this.onPointerUp, this);
         this.input.keyboard.on(Phaser.Input.Keyboard.Events.ANY_KEY_DOWN, this.onKeyDown, this);
 
         this.input.on('wheel', this.onMouseWheel, this);
     }
 
-    onScoreUpdate(score: number) {
-        this.score = score;
-        this.scoreText.setText(String(score) + " points");
+    onNewPoints(points: number, hexType: number) {
+        this.score += points;
+        this.scoreBreakdown[hexType] += points;
+        this.scoreText.setText(String(this.score) + " points");
     }
 
     onMouseWheel(pointer, gameObjects, deltaX, deltaY, deltaZ) {
@@ -131,13 +147,13 @@ export class MainScene extends Phaser.Scene {
 
     rotateRight() {
         this.nextTrihex.rotateRight();
-        this.grid.updateTriPreview(this.input.activePointer.worldX, this.input.activePointer.worldY, this.nextTrihex);
+        this.grid.updateTriPreview(this.previewX, this.previewY, this.nextTrihex);
         this.updateBigTrihex();
     }
 
     rotateLeft() {
         this.nextTrihex.rotateLeft();
-        this.grid.updateTriPreview(this.input.activePointer.worldX, this.input.activePointer.worldY, this.nextTrihex);
+        this.grid.updateTriPreview(this.previewX, this.previewY, this.nextTrihex);
         this.updateBigTrihex();
     }
 
@@ -276,7 +292,7 @@ export class MainScene extends Phaser.Scene {
         this.tweens.add({
             targets: this.scoreText,
             props: {
-                y: 200
+                y: 150
             },
             duration: 700,
             ease: Phaser.Math.Easing.Quadratic.Out
@@ -284,7 +300,12 @@ export class MainScene extends Phaser.Scene {
 
         
         let rank, message1, message2;
-        if (this.score < 70) {
+        if (this.score === 0) {
+            // Z rank
+            rank = "Rank: Z";
+            message1 = "What!?"
+            message2 = "(That's honestly impressive!)"
+        } else if (this.score < 70) {
             // E rank
             rank = "Rank: E";
             message1 = "Finished!";
@@ -312,27 +333,70 @@ export class MainScene extends Phaser.Scene {
         } else if (this.score < 120) {
             // A+ rank
             rank = "Rank: A+";
-            message1 = "Nearly flawless!";
+            message1 = "Amazing!";
             message2 = "(Next rank at 120 points)";
-        } else {
+        } else if (this.score < 125) {
             // S rank
             rank = "Rank: S";
             message1 = "Incredible!!";
             message2 = "(This is the highest rank!)";
+        } else {
+            // S rank (perfect)
+            rank = "Rank: S";
+            message1 = "A perfect score!!";
+            message2 = "(This is the highest rank!)"
         }
         
-        this.gameOverText = this.add.bitmapText(1400, 100, 'font', message1, 70);
+        this.gameOverText = this.add.bitmapText(1500, 70, 'font', message1, 60);
         this.gameOverText.setOrigin(0.5);
         this.gameOverText.setDepth(4);
 
-        this.rankText = this.add.bitmapText(1400, 340, 'font', rank, 60);
+        this.rankText = this.add.bitmapText(1500, 460, 'font', rank, 60);
+        this.rankText.setOrigin(0.5);
         this.rankText.setDepth(4);
 
-        this.nextRankText = this.add.bitmapText(1400, 400, 'font', message2, 40);
+        this.nextRankText = this.add.bitmapText(1500, 520, 'font', message2, 40);
+        this.nextRankText.setOrigin(0.5);
         this.nextRankText.setDepth(4);
 
-        this.playAgainButton = new Button(this, 1400, 600, 'play-again-button', this.playAgain.bind(this));
+        this.playAgainButton = new Button(this, 1400, 630, 'play-again-button', this.playAgain.bind(this));
         this.playAgainButton.setDepth(4);
+
+        this.breakdownContainer = this.add.container(1500, 300);
+        this.breakdownContainer.setDepth(4);
+
+        this.breakdownHexes = [];
+        this.breakdownTexts = [];
+
+        for (let i = 0; i < 3; i++) {
+            let h = new Hex(this, 0, 0, -1, -1);
+            h.embiggen();
+            h.setDepth(4);
+            this.breakdownContainer.add(h);
+            this.breakdownHexes.push(h);
+            this.breakdownContainer.add(h.edges.getChildren());
+            this.breakdownContainer.add(h.propeller);
+
+            let t = this.add.bitmapText(0, 80, 'font', '0', 40);
+            t.setOrigin(0.5);
+            this.breakdownTexts.push(t);
+            this.breakdownContainer.add(t);
+        }
+
+        this.breakdownHexes[0].setType(3);
+        this.breakdownHexes[0].upgrade();
+        this.breakdownHexes[0].setX(-125);
+        this.breakdownTexts[0].setX(-125);
+        this.breakdownTexts[0].setText(String(this.scoreBreakdown[3] + this.scoreBreakdown[5]));
+        
+        this.breakdownHexes[1].setType(2);
+        this.breakdownHexes[1].upgrade();
+        this.breakdownTexts[1].setText(String(this.scoreBreakdown[2]));
+        
+        this.breakdownHexes[2].setType(1);
+        this.breakdownHexes[2].setX(125);
+        this.breakdownTexts[2].setX(125);
+        this.breakdownTexts[2].setText(String(this.scoreBreakdown[1]));
 
         this.tweens.add({
             targets: this.gameOverText,
@@ -343,17 +407,17 @@ export class MainScene extends Phaser.Scene {
         });
 
         this.tweens.add({
-            targets: this.rankText,
-            props: { x: 960 },
-            delay: 700,
+            targets: this.breakdownContainer,
+            props: { x: 1040 },
+            delay: 600,
             duration: 300,
             ease: Phaser.Math.Easing.Quadratic.Out
         });
 
         this.tweens.add({
-            targets: this.nextRankText,
-            props: { x: 865 },
-            delay: 700,
+            targets: [this.rankText, this.nextRankText],
+            props: { x: 1040 },
+            delay: 900,
             duration: 300,
             ease: Phaser.Math.Easing.Quadratic.Out
         });
@@ -361,15 +425,14 @@ export class MainScene extends Phaser.Scene {
         this.tweens.add({
             targets: this.playAgainButton,
             props: { x: 1040 },
-            delay: 1000,
+            delay: 1200,
             duration: 300,
             ease: Phaser.Math.Easing.Quadratic.Out
         });
-        
     }
 
     playAgain() {
-
+        this.breakdownContainer.setVisible(false);
         this.gameOverText.setVisible(false);
         this.nextRankText.setVisible(false);
         this.rankText.setVisible(false);
@@ -389,8 +452,17 @@ export class MainScene extends Phaser.Scene {
         });
     }
 
-    onPointerDown(event) {
-        if (this.grid.placeTrihex(event.worldX, event.worldY, this.nextTrihex)) {
+    onPointerUp(event) {
+        if (this.pointerDown) {
+            this.previewX = event.worldX;
+            this.previewY = event.worldY;
+            this.placeTrihex();
+        }
+        this.pointerDown = false;
+    }
+
+    placeTrihex() {
+        if (this.grid.placeTrihex(this.previewX, this.previewY, this.nextTrihex)) {
             this.pickNextTrihex();
             
             if (this.nextTrihex.hexes[0] === 0 || !this.grid.canPlaceShape(this.nextTrihex.shape)) {
@@ -401,10 +473,24 @@ export class MainScene extends Phaser.Scene {
                 });
                 this.grid.deactivate();
             }
+            this.grid.updateTriPreview(-100, -100, this.nextTrihex);
         }
     }
 
+    onPointerDown(event) {
+        if (event.worldX === this.previewX && event.worldY === this.previewY) {
+            this.placeTrihex();
+        } else {
+            this.previewX = event.worldX;
+            this.previewY = event.worldY;
+            this.grid.updateTriPreview(event.worldX, event.worldY, this.nextTrihex);
+        }
+        this.pointerDown = true;
+    }
+
     onPointerMove(event) {
+        this.previewX = event.worldX;
+        this.previewY = event.worldY;
         this.grid.updateTriPreview(event.worldX, event.worldY, this.nextTrihex);
     }
 

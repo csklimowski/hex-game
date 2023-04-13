@@ -406,19 +406,18 @@ export class HexGrid extends Phaser.GameObjects.Group {
     enabled: boolean;
 
     scoreText: Phaser.GameObjects.BitmapText;
-    score: number;
     scoreQueue: Queue<ScorePopper>
     onQueueEmpty: () => void;
     puffManager: Phaser.GameObjects.Particles.ParticleEmitterManager;
 
-    onScoreUpdate: (score: number) => void;
+    onNewPoints: (score: number, hexType: number) => void;
 
     size: number;
 
     x: number;
     y: number;
 
-    constructor(scene: Phaser.Scene, size: number, hills: number, x?: number, y?: number, onScoreUpdate?: (score: number) => void) {
+    constructor(scene: Phaser.Scene, size: number, hills: number, x?: number, y?: number, onNewPoints?: (score: number, hexType: number) => void) {
         super(scene);
 
         this.enabled = true;
@@ -427,8 +426,7 @@ export class HexGrid extends Phaser.GameObjects.Group {
         this.hexes = [];
         this.size = size;
         
-        this.score = 0;
-        this.onScoreUpdate = onScoreUpdate;
+        this.onNewPoints = onNewPoints;
 
         this.x = x || 0;
         this.y = y || 0;
@@ -811,33 +809,31 @@ export class HexGrid extends Phaser.GameObjects.Group {
             let p = this.scoreQueue.deq();
             p.pop();
             
-            this.score += p.points;
-            if (this.onScoreUpdate) {
-                this.onScoreUpdate(this.score);
+            if (this.onNewPoints) {
+                this.onNewPoints(p.points, p.hexes[0].hexType);
             }
-            if (p.hexes) {
-                for (let h of p.hexes) {
-                    h.upgrade();
-                    if (p.points > 0) h.puff();
-                }
 
-                if (p.points > 0) {
-                    if (p.hexes[0].hexType === 3) {
-                        this.scene.sound.play('pop', {volume: 0.5});
+            for (let h of p.hexes) {
+                h.upgrade();
+                if (p.points > 0) h.puff();
+            }
+
+            if (p.points > 0) {
+                if (p.hexes[0].hexType === 3) {
+                    this.scene.sound.play('pop', {volume: 0.5});
+                }
+                if (p.hexes[0].hexType === 2) {
+                    this.scene.sound.play('tree', {volume: 0.5});
+                }
+                if (p.hexes[0].hexType === 1) {
+                    if (p.hexes[0].hasHill) {
+                        this.scene.sound.play('windmill-hill', {volume: 0.6});
+                    } else {
+                        this.scene.sound.play('windmill', {volume: 0.6});
                     }
-                    if (p.hexes[0].hexType === 2) {
-                        this.scene.sound.play('tree', {volume: 0.5});
-                    }
-                    if (p.hexes[0].hexType === 1) {
-                        if (p.hexes[0].hasHill) {
-                            this.scene.sound.play('windmill-hill', {volume: 0.6});
-                        } else {
-                            this.scene.sound.play('windmill', {volume: 0.6});
-                        }
-                    }
-                    if (p.hexes[0].hexType === 5) {
-                        this.scene.sound.play('port', {volume: 0.9});
-                    }
+                }
+                if (p.hexes[0].hexType === 5) {
+                    this.scene.sound.play('port', {volume: 0.9});
                 }
             }
         } else if (this.onQueueEmpty) {
