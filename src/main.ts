@@ -314,7 +314,8 @@ export class MainScene extends Phaser.Scene {
                 this.rotateLeftButton,
                 this.rotateRightButton,
                 this.deckCounterImage,
-                this.deckCounterText
+                this.deckCounterText,
+                this.openHelpButton
             ],
             props: {
                 alpha: 0
