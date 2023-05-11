@@ -16,7 +16,9 @@ export class MainScene extends Phaser.Scene {
     deckCounterText: Phaser.GameObjects.BitmapText;
     rotateLeftButton: Button;
     rotateRightButton: Button;
-    menuButton: Button;
+    openHelpButton: Button;
+    closeHelpButton: Button;
+    helpPage: Phaser.GameObjects.Image;
     score: number;
     scoreBreakdown: number[];
     scoreText: Phaser.GameObjects.BitmapText;
@@ -62,6 +64,13 @@ export class MainScene extends Phaser.Scene {
         this.rotateLeftButton.setFlipX(true);
         this.rotateRightButton = new Button(this, 375, 180, 'rotate', this.rotateRight.bind(this));
         this.rotateRightButton.setDepth(3.5);
+
+        this.openHelpButton = new Button(this, 410, 640, 'question', this.openHelp.bind(this));
+        this.openHelpButton.setDepth(3.5);
+
+        this.closeHelpButton = new Button(this, 1210, 640, 'x', this.closeHelp.bind(this));
+        this.closeHelpButton.setDepth(5.1);
+        this.closeHelpButton.setVisible(false);
         
         this.deckCounterText = this.add.bitmapText(240, 620, 'font', String(this.trihexDeck.length), 60)
         this.deckCounterText.setOrigin(0.5, 0.45);
@@ -85,6 +94,10 @@ export class MainScene extends Phaser.Scene {
             this.bigPreviewContainer.add(h.propeller);
         }
 
+        this.helpPage = this.add.image(640, 360, 'help-page');
+        this.helpPage.setDepth(5);
+        this.helpPage.setVisible(false);
+
         this.pickNextTrihex();
 
 
@@ -101,6 +114,12 @@ export class MainScene extends Phaser.Scene {
         this.tweens.add({
             targets: this.rotateLeftButton,
             props: { x: this.rotateLeftButton.x + 800 },
+            duration: 400
+        });
+
+        this.tweens.add({
+            targets: this.openHelpButton,
+            props: { x: this.openHelpButton.x + 800 },
             duration: 400
         });
 
@@ -134,6 +153,20 @@ export class MainScene extends Phaser.Scene {
         this.score += points;
         this.scoreBreakdown[hexType] += points;
         this.scoreText.setText(String(this.score) + " points");
+    }
+
+    openHelp() {
+        this.helpPage.setVisible(true);
+        this.closeHelpButton.setVisible(true);
+        this.openHelpButton.setVisible(false);
+        this.grid.deactivate();
+    }
+
+    closeHelp() {
+        this.helpPage.setVisible(false);
+        this.closeHelpButton.setVisible(false);
+        this.openHelpButton.setVisible(true);
+        this.grid.activate();
     }
 
     onMouseWheel(pointer, gameObjects, deltaX, deltaY, deltaZ) {
@@ -462,6 +495,7 @@ export class MainScene extends Phaser.Scene {
     }
 
     placeTrihex() {
+        if (!this.grid.enabled) return;
         if (this.grid.placeTrihex(this.previewX, this.previewY, this.nextTrihex)) {
             this.pickNextTrihex();
             

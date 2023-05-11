@@ -38,6 +38,9 @@ export class LoadScene extends Phaser.Scene {
 
         this.load.image('blue', 'img/blue.png');
         this.load.image('rotate', 'img/rotate.png');
+        this.load.image('question', 'img/question.png');
+        this.load.image('x', 'img/x.png');
+        this.load.image('help-page', 'img/help-page.png');
         this.load.image('page', 'img/page.png');
         this.load.image('waves', 'img/waves.png');
         this.load.image('waves2', 'img/waves2.png');
