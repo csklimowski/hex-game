@@ -85,7 +85,6 @@ export class Hex extends Phaser.GameObjects.Image {
     upgraded: boolean;
 
     puffer: Phaser.GameObjects.Particles.ParticleEmitter;
-    puffManager: Phaser.GameObjects.Particles.ParticleEmitterManager;
     // streets and ports are counted when they're connected to the center
     // parks are counted in batches of 3, check when new ones are added to the group
     // windmills are counted when placed; and can be uncounted if a new one is placed
@@ -99,7 +98,7 @@ export class Hex extends Phaser.GameObjects.Image {
     edges: Phaser.GameObjects.Group;
     propeller: Phaser.GameObjects.Image;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, row: number, col: number, particleManager?: Phaser.GameObjects.Particles.ParticleEmitterManager) {
+    constructor(scene: Phaser.Scene, x: number, y: number, row: number, col: number, particleManager?: Phaser.GameObjects.Particles.ParticleEmitter) {
         super(scene, x, y, 'empty');
         
         this.setScale(0.5);
@@ -135,29 +134,21 @@ export class Hex extends Phaser.GameObjects.Image {
         this.propeller.setDepth(2);
 
         
-        this.puffManager = particleManager;
-        if (particleManager) {
-            this.puffTint(0xffffff);
-        }
-    }
-
-    puffTint(tint: number) {
-        if (this.puffer) this.puffer.killAll();
-        this.puffer = this.puffManager.createEmitter({
+        this.puffer = scene.add.particles(0, 0, 'particle', {
             lifespan: 1000,
             speed: { min: 3, max: 20 },
             angle: { min: 0, max: 360 },
             scale: 2,
             quantity: 20,
+            emitting: false,
             alpha: { start: 1, end: 0},
-            on: false,
-            tint: tint,
             emitZone: {
                 type: 'random',
                 source: new Phaser.Geom.Rectangle(-25, -25, 50, 50),
                 quantity: 20
             },
         });
+        this.puffer.setDepth(1);
     }
 
     puff() {
@@ -217,16 +208,14 @@ export class Hex extends Phaser.GameObjects.Image {
             this.propeller.setVisible(false);
         }
 
-        if (this.puffManager) {
-            if (hexType === 1) {
-                this.puffTint(0xffffff);
-            } else if (hexType === 2) {
-                this.puffTint(0x408A0F);
-            } else if (hexType === 3) {
-                this.puffTint(0xAE482C);
-            } else if (hexType === 5) {
-                this.puffTint(0x3B80A6);
-            }
+        if (hexType === 1) {
+            this.puffer.setParticleTint(0xffffff);
+        } else if (hexType === 2) {
+            this.puffer.setParticleTint(0x408A0F);
+        } else if (hexType === 3) {
+            this.puffer.setParticleTint(0xAE482C);
+        } else if (hexType === 5) {
+            this.puffer.setParticleTint(0x3B80A6);
         }
 
         if (hexType === 5) {
@@ -408,7 +397,6 @@ export class HexGrid extends Phaser.GameObjects.Group {
     scoreText: Phaser.GameObjects.BitmapText;
     scoreQueue: Queue<ScorePopper>
     onQueueEmpty: () => void;
-    puffManager: Phaser.GameObjects.Particles.ParticleEmitterManager;
 
     onNewPoints: (score: number, hexType: number) => void;
 
@@ -431,9 +419,6 @@ export class HexGrid extends Phaser.GameObjects.Group {
         this.x = x || 0;
         this.y = y || 0;
 
-        this.puffManager = scene.add.particles('particle');
-        this.puffManager.setDepth(1);
-
         this.scoreQueue = new Queue<ScorePopper>();
         
         for (let r = 0; r < size + size + 1; r++) {
@@ -441,7 +426,7 @@ export class HexGrid extends Phaser.GameObjects.Group {
                 if (c + r < size || c + r > size*3) {
                     continue;
                 } else {
-                    let h = new Hex(scene, getX(r, c) + this.x, getY(r, c) + this.y, r, c, this.puffManager);
+                    let h = new Hex(scene, getX(r, c) + this.x, getY(r, c) + this.y, r, c);
                     this.add(h);
                     this.grid.set(r, c, h);
                     this.hexes.push(h);
@@ -537,7 +522,7 @@ export class HexGrid extends Phaser.GameObjects.Group {
 
         for (let h of this.hexes) {
             if (h.hexType === 0 || (h.hexType === 5 && !h.counted))  {
-                h.puffTint(0x3B80A6);
+                h.puffer.setParticleTint(0x3B80A6);
                 h.puff();
                 h.setVisible(false);
                 h.edges.setVisible(false);
@@ -619,6 +604,13 @@ export class HexGrid extends Phaser.GameObjects.Group {
         this.triPreviews[0].setVisible(false);
         this.triPreviews[1].setVisible(false);
         this.triPreviews[2].setVisible(false);
+    }
+
+    activate() {
+        this.enabled = true;
+        this.triPreviews[0].setVisible(true);
+        this.triPreviews[1].setVisible(true);
+        this.triPreviews[2].setVisible(true);
     }
 
     updateTriPreview(x: number, y: number, trihex: Trihex) {
